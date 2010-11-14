@@ -64,7 +64,7 @@ abstract class BabelCache {
 	 * @param  string $namespace
 	 */
 	protected static function cleanupNamespace($namespace) {
-		return self::trimString($key, 'An empty namespace was given.');
+		return self::trimString($namespace, 'An empty namespace was given.');
 	}
 
 	/**
