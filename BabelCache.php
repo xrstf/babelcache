@@ -198,7 +198,7 @@ abstract class BabelCache {
 	 *
 	 * @verbatim
 	 * $myVar = 5;
-	 * $key   = VarisaleCache::generateKey(12, $myVar, 'foobar', true, 4.45, array(1,2), 'x');
+	 * $key   = BabelCache::generateKey(12, $myVar, 'foobar', true, 4.45, array(1,2), 'x');
 	 * $key   = '12_5_foobar_1_4#45_a[1_2]_x';
 	 * @endverbatim
 	 *
