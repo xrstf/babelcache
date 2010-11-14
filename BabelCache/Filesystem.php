@@ -21,7 +21,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_IFlushable 
 		clearstatcache();
 
 		if (!is_dir($dataDirectory) && !@mkdir($dataDirectory, 0777, true)) {
-			throw new BabelCache_Exception($I18N->msg('sly_cant_create_dir', $dataDirectory));
+			throw new BabelCache_Exception('Can\'t create cache directory.');
 		}
 
 		$this->dataDir = $dataDirectory;
@@ -155,7 +155,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_IFlushable 
 			$dir      = parent::concatPath($root, $thisPart);
 
 			if (!is_dir($dir) && !@mkdir($dir, 0777, true)) {
-				throw new BabelCache_Exception($I18N->msg('sly_cant_create_dir', $dir));
+				throw new BabelCache_Exception('Can\'t create namespace directory.');
 			}
 
 			return self::createNamespaceDir($namespace, $dir, $hash);
@@ -172,7 +172,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_IFlushable 
 			$dir = parent::concatPath($root, 'data'.parent::getSafeDirChar());
 
 			if (!is_dir($dir) && !@mkdir($dir, 0777, true)) {
-				throw new WV_CacheException($I18N->msg('sly_cant_create_dir', $dir));
+				throw new BabelCache_Exception('Can\'t create namespace directory.');
 			}
 
 			// Jetzt kommen die kleinen Verzeichnisse...
@@ -180,7 +180,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_IFlushable 
 			$dir = parent::concatPath($dir, $hash[0].$hash[1]);
 
 			if (!is_dir($dir) && !@mkdir($dir, 0777, true)) {
-				throw new WV_CacheException($I18N->msg('sly_cant_create_dir', $dir));
+				throw new BabelCache_Exception('Can\'t create splitter directory.');
 			}
 
 			return true;
@@ -216,7 +216,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_IFlushable 
 		$dir       = parent::concatPath($dir, $namespace, $dataDir, $hashPart);
 
 		if (!is_dir($dir) && !@mkdir($dir, 0777, true)) {
-			throw new WV_CacheException($I18N->msg('sly_cant_create_dir', $dir));
+			throw new BabelCache_Exception('Can\'t create directory.');
 		}
 
 		return parent::concatPath($dir, $hash);

@@ -13,10 +13,6 @@
  * spezifische Cache-Implementierung zu geben. Für besondere Systemumgebungen
  * können speziell angepasste Cache-Implementierungen sinnvoll sein.
  *
- * Das Cache-Addon muss seine ICache Implementierung über
- * sly_Core::getInstance()->setCache($cache);
- * registrieren.
- *
  * @ingroup cache
  */
 interface BabelCache_Interface {
