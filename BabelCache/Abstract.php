@@ -11,8 +11,9 @@
 /**
  * @ingroup cache
  */
-abstract class BabelCache_Abstract extends BabelCache implements BabelCache_IFlushable {
-	protected $versions = array();
+abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Interface {
+	protected $versions        = array();
+	protected $namespacePrefix = 'foo';
 
 	abstract public function getMaxKeyLength();
 	abstract public function hasLocking();

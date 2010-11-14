@@ -49,5 +49,7 @@ interface BabelCache_Interface {
 	public function unlock($namespace, $key);
 	public function waitForObject($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 50);
 
+	public function flush($namespace, $recursive = false);
+
 	public static function isAvailable();
 }

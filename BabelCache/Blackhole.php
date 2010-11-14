@@ -18,7 +18,7 @@
  *
  * @ingroup cache
  */
-class BabelCache_Blackhole extends BabelCache implements BabelCache_ISeekable {
+class BabelCache_Blackhole extends BabelCache implements BabelCache_Interface {
 	public function set($namespace, $key, $value) {
 		return $value;
 	}
@@ -47,23 +47,7 @@ class BabelCache_Blackhole extends BabelCache implements BabelCache_ISeekable {
 		return true;
 	}
 
-	public function find($namespace, $key = '*', $getKey = false, $recursive = false) {
-		return array();
-	}
-
-	public function getAll($namespace, $recursive = false) {
-		return array();
-	}
-
 	public function flush($namespace, $recursive = false) {
 		return true;
-	}
-
-	public function getElementCount($namespace, $recursive = false) {
-		return 0;
-	}
-
-	public function getSize($namespace, $recursive = false) {
-		return 0;
 	}
 }

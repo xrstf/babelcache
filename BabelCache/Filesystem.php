@@ -11,7 +11,7 @@
 /**
  * @ingroup cache
  */
-class BabelCache_Filesystem extends BabelCache implements BabelCache_IFlushable {
+class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	protected $dataDir    = '';
 	protected $quickCache = null;
 

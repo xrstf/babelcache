@@ -21,8 +21,8 @@ class BabelCache_XCache extends BabelCache_Abstract {
 	}
 
 	public static function isAvailable() {
-		// Wir müssen auch prüfen, ob Werte gespeichert werden können (oder ob nur der Opcode-Cache aktiviert ist).
-		return function_exists('xcache_set') && xcache_set('test', 1, 1);
+		// XCache will throw a warning if it is misconfigured. We don't want to see that one.
+		return function_exists('xcache_set') && @xcache_set('test', 1, 1);
 	}
 
 	protected function _getRaw($key) {
