@@ -12,23 +12,14 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	protected $dataDir    = '';
 	protected $quickCache = null;
 
-	public function __construct($dataDirectory, $quickCache = 'BabelCache_Memory') {
-		global $I18N;
+	private static $safeDirChar = '~';
 
+	public function __construct($dataDirectory) {
 		clearstatcache();
+		self::makeDir($dataDirectory);
 
-		if (!is_dir($dataDirectory) && !@mkdir($dataDirectory, 0777, true)) {
-			throw new BabelCache_Exception('Can\'t create cache directory.');
-		}
-
-		$this->dataDir = $dataDirectory;
-
-		if (!empty($quickCache)) {
-			$this->quickCache = ($quickCache instanceof BabelCache_IFlushable) ? $quickCache : BabelCache::factory($quickCache);
-		}
-		else {
-			$this->quickCache = BabelCache::factory('BabelCache_Memory');
-		}
+		$this->dataDir    = $dataDirectory;
+		$this->quickCache = new BabelCache_Memory();
 	}
 
 	/**
@@ -40,7 +31,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 
 	public function lock($namespace, $key, $duration = 1) {
 		$key = $this->getFullKeyHelper($namespace, $key);
-		$dir = parent::concatPath($this->dataDir, 'lock#'.$key);
+		$dir = $this->dataDir.'/lock#'.$key;
 
 		clearstatcache();
 		return @mkdir($dir, 0777);
@@ -48,15 +39,15 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 
 	public function unlock($namespace, $key) {
 		$key = $this->getFullKeyHelper($namespace, $key);
-		$dir = parent::concatPath($this->dataDir, 'lock#'.$key);
+		$dir = $this->dataDir.'/lock#'.$key;
 
 		clearstatcache();
-		return is_dir($dir) ? rmdir($dir) : true;
+		return is_dir($dir) ? @rmdir($dir) : true;
 	}
 
 	public function waitForObject($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 50) {
 		$key            = $this->getFullKeyHelper($namespace, $key);
-		$dir            = parent::concatPath($this->dataDir, 'lock#'.$key);
+		$dir            = $this->dataDir.'/lock#'.$key;
 		$start          = microtime(true);
 		$waited         = 0;
 		$checkInterval *= 1000;
@@ -72,12 +63,13 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 		if (!is_dir($dir)) {
 			return $this->get($namespace, $key, $default);
 		}
-		else {
-			return $default;
-		}
+
+		return $default;
 	}
 
 	public function set($namespace, $key, $value) {
+		$this->checkString($namespace);
+
 		$this->quickCache->set(self::getMemNamespace($namespace), $key, $value);
 
 		$filename = $this->getFilename($namespace, $key);
@@ -91,6 +83,8 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	}
 
 	public function get($namespace, $key, $default = null) {
+		$this->checkString($namespace);
+
 		$memNamespace = self::getMemNamespace($namespace);
 
 		if ($this->quickCache->exists($memNamespace, $key)) {
@@ -105,6 +99,8 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	}
 
 	public function exists($namespace, $key) {
+		$this->checkString($namespace);
+
 		if ($this->quickCache->exists(self::getMemNamespace($namespace), $key)) {
 			return true;
 		}
@@ -113,55 +109,54 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	}
 
 	public function delete($namespace, $key) {
+		$this->checkString($namespace);
+
 		$this->quickCache->delete(self::getMemNamespace($namespace), $key);
 		clearstatcache();
+
 		return @unlink($this->getFilename($namespace, $key));
 	}
 
 	public function flush($namespace, $recursive = false) {
+		$this->checkString($namespace);
+
 		// flush quick cache
 
 		$this->quickCache->flush(self::getMemNamespace($namespace), $recursive);
 
 		// handle our own cache
 
-		$namespace = self::getDirFromNamespace(self::cleanupNamespace($namespace));
-		$root      = parent::concatPath($this->dataDir, $namespace);
+		$namespace = $this->getDirFromNamespace($namespace);
+		$root      = $this->dataDir.'/'.$namespace;
 
 		// Wenn wir rekursiv löschen, können wir wirklich alles in diesem Verzeichnis
 		// löschen.
 
 		if ($recursive) {
 			clearstatcache();
-			return self::deleteRecursive($root);
+			return $this->deleteRecursive($root);
 		}
 
 		// Löschen wir nicht rekursiv, dürfen wir nur das data~-Verzeichnis
 		// entfernen.
 
 		else {
-			$dataDir = 'data'.parent::getSafeDirChar();
+			$dataDir = 'data'.self::$safeDirChar;
 			clearstatcache();
-			return self::deleteRecursive(parent::concatPath($root, $dataDir));
+			return $this->deleteRecursive($root.'/'.$dataDir);
 		}
 	}
 
-	protected static function getMemNamespace($namespace) {
-		$namespace = parent::cleanupNamespace($namespace);
+	private static function getMemNamespace($namespace) {
 		return 'fscache.'.$namespace;
 	}
 
-	protected static function createNamespaceDir($namespace, $root, $hash) {
-		global $I18N;
-
+	private static function createNamespaceDir($namespace, $root, $hash) {
 		if (!empty($namespace)) {
 			$thisPart = array_shift($namespace);
-			$dir      = parent::concatPath($root, $thisPart);
+			$dir      = $root.'/'.$thisPart;
 
-			if (!is_dir($dir) && !@mkdir($dir, 0777, true)) {
-				throw new BabelCache_Exception('Can\'t create namespace directory.');
-			}
-
+			self::makeDir($dir);
 			return self::createNamespaceDir($namespace, $dir, $hash);
 		}
 		else {
@@ -169,42 +164,34 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 			// damit nicht alle Dateien in einem großen Verzeichnis leben müssen.
 
 			// Dazu legen wir in dem Zielnamespace ein Verzeichnis "data~" an,
-			// in dem die 00, 01, ... 99 ... EF, FF-Verzeichnisse erzeugt werden.
+			// in dem die 00, 01, ... 99 ... FE, FF-Verzeichnisse erzeugt werden.
 			// Dadurch vermeiden wir Kollisionen mit Namespaces, die auch Teilnamespaces
 			// der Länge 2 haben.
 
-			$dir = parent::concatPath($root, 'data'.parent::getSafeDirChar());
-
-			if (!is_dir($dir) && !@mkdir($dir, 0777, true)) {
-				throw new BabelCache_Exception('Can\'t create namespace directory.');
-			}
+			$dir = $root.'/data'.self::$safeDirChar;
+			self::makeDir($dir);
 
 			// Jetzt kommen die kleinen Verzeichnisse...
 
-			$dir = parent::concatPath($dir, $hash[0].$hash[1]);
-
-			if (!is_dir($dir) && !@mkdir($dir, 0777, true)) {
-				throw new BabelCache_Exception('Can\'t create splitter directory.');
-			}
+			$dir = $dir.'/'.self::cutHash($hash);
+			self::makeDir($dir);
 
 			return true;
 		}
 	}
 
-	protected static function dataDirExists($namespace, $root) {
+	private static function dataDirExists($namespace, $root) {
 		$namespace = self::getDirFromNamespace($namespace);
-		$dataDir   = 'data'.parent::getSafeDirChar();
-		$dirname   = parent::concatPath($root, $namespace, $dataDir);
+		$dataDir   = 'data'.self::$safeDirChar;
+		$dirname   = $root.'/'.$namespace.'/'.$dataDir;
 
 		clearstatcache();
 		return is_dir($dirname);
 	}
 
-	protected function getFilename($namespace, $key) {
-		global $I18N;
-
-		$namespace = parent::cleanupNamespace($namespace);
-		$key       = parent::cleanupKey($key);
+	private function getFilename($namespace, $key) {
+		$namespace = $this->checkString($namespace);
+		$key       = $this->checkString($key);
 		$dir       = $this->dataDir;
 		$hash      = md5($key);
 
@@ -215,21 +202,18 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 		// Finalen Dateipfad erstellen
 
 		$namespace = self::getDirFromNamespace($namespace);
-		$dataDir   = 'data'.parent::getSafeDirChar();
-		$hashPart  = $hash[0].$hash[1];
-		$dir       = parent::concatPath($dir, $namespace, $dataDir, $hashPart);
+		$dataDir   = 'data'.self::$safeDirChar;
+		$hashPart  = self::cutHash($hash);
+		$dir       = $dir.'/'.$namespace.'/'.$dataDir.'/'.$hashPart;
 
-		if (!is_dir($dir) && !@mkdir($dir, 0777, true)) {
-			throw new BabelCache_Exception('Can\'t create directory.');
-		}
-
-		return parent::concatPath($dir, $hash);
+		self::makeDir($dir);
+		return $dir.'/'.$hash;
 	}
 
-	protected static function getSubNamespaces($namespace) {
-		$namespace = self::getDirFromNamespace(parent::cleanupNamespace($namespace));
-		$dir       = parent::concatPath($this->dataDir, $namespace);
-		$dataDir   = 'data'.parent::getSafeDirChar();
+	private static function getSubNamespaces($namespace) {
+		$namespace = self::getDirFromNamespace($this->checkString($namespace));
+		$dir       = $this->dataDir.'/'.$namespace;
+		$dataDir   = 'data'.self::$safeDirChar;
 
 		// Verzeichnisse ermitteln
 
@@ -247,7 +231,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 		return array_values($namespaces);
 	}
 
-	protected static function deleteRecursive($root) {
+	private static function deleteRecursive($root) {
 		if (!is_dir($root)) {
 			return true;
 		}
@@ -279,27 +263,17 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	/**
 	 * @param string $namespace
 	 */
-	protected static function getDirFromNamespace($namespace) {
-		return str_replace('.', DIRECTORY_SEPARATOR, $namespace);
+	private static function getDirFromNamespace($namespace) {
+		return str_replace('.', '/', $namespace);
 	}
 
-	/**
-	 * @param string $args  Call this method with as many arguments as you want.
-	 */
-	protected static function concatPath($args) {
-		$args = func_get_args();
-		return implode(DIRECTORY_SEPARATOR, $args);
+	private static function makeDir($dir) {
+		if (!is_dir($dir) && !@mkdir($dir, 0777, true)) {
+			throw new BabelCache_Exception('Can\'t create directory in '.$dir.'.');
+		}
 	}
 
-	/**
-	 * Diese Methode sagt den einzelnen Caches, welches Zeichen weder in
-	 * Namespacenamen noch in Keys vorkommen darf. Damit können die
-	 * Implementierungen dieses Zeichen dann verwenden, um interne Strukturen
-	 * zu kennzeichnen.
-	 *
-	 * @return string
-	 */
-	protected static function getSafeDirChar() {
-		return '~';
+	private static function cutHash($hash) {
+		return substr($hash, 0, 2);
 	}
 }
