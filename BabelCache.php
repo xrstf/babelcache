@@ -8,16 +8,24 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+/**
+ * Base class for (nearly) all caches
+ *
+ * This class only contains three little methods. Most of the time, you will be
+ * using generateKey().
+ *
+ * @author Christoph Mewes
+ */
 abstract class BabelCache {
 	/**
-	 * Cachekey erzeugen
+	 * Create cache key
 	 *
-	 * Diese Hilfsmethode kann genutzt werden, um in Abhängigkeit von beliebigen
-	 * Parametern einen eindeutigen Key zu erzeugen. Dazu kann diese Methode
-	 * mit beliebig vielen Parametern aufgerufen werden, die in Abhängigkeit von
-	 * ihrem Typ verarbeitet und zu einem Key zusammengeführt werden.
+	 * This helper method can be used to create a nice cache key from a list of
+	 * arbitrary variables. You can call this method with as much parameters as
+	 * you like. It will do it's best to convert them to an unique string
+	 * representation.
 	 *
-	 * Ein Aufruf könnte beispielsweise wie folgt aussehen:
+	 * One example call could look like this:
 	 *
 	 * @verbatim
 	 * $myVar = 5;
@@ -25,8 +33,8 @@ abstract class BabelCache {
 	 * $key   = '12_5_foobar_1_4#45_a[1_2]_x';
 	 * @endverbatim
 	 *
-	 * @param  mixed $vars  Pseudo-Parameter. Diese Methode kann mit beliebig vielen Parametern aufgerufen werden
-	 * @return string       der Objekt-Schlüssel
+	 * @param  mixed $vars  pseudo parameter
+	 * @return string       the generated key
 	 */
 	public static function generateKey($vars) {
 		$vars = func_get_args();
@@ -79,13 +87,25 @@ abstract class BabelCache {
 		return implode('_', $key);
 	}
 
+	/**
+	 * Checks a string for validity
+	 *
+	 * To keep things nice and easy, only a small subset of ASCII is allowed in
+	 * namespace/key values. Additionally you can't start or end a value with
+	 * a dot, the value must be non-empty, cannot contain '..' and may contain
+	 * only the characters A-Z, 0-9, '_', '.', '[', ']', '$', '#' and '-'.
+	 *
+	 * @throws BabelCache_Exception  if the string contains illegal characters
+	 * @param  string $str           the string to check
+	 * @return string                the unaltered string
+	 */
 	protected function checkString($str) {
 		if (
 			strlen($str) === 0 ||
 			$str[0] === '.' ||
 			$str[strlen($str)-1] === '.' ||
 			strpos($str, '..') !== false ||
-			!preg_match('#^[a-z0-9_.-]+$#i', $str)
+			!preg_match('#^[a-z0-9_.\[\]%\#-]+$#i', $str)
 		) {
 			throw new BabelCache_Exception('A malformed string was given.');
 		}
@@ -94,9 +114,18 @@ abstract class BabelCache {
 	}
 
 	/**
-	 * @param  string $namespace
-	 * @param  string $key
-	 * @return string
+	 * Concats namespace and key
+	 *
+	 * This method will just concat the namespace and the key, if the key is
+	 * not empty. The splitter character is '$'.
+	 * Both namespace and key will be checked with checkString().
+	 *
+	 * It's allowed to enter an empty key. This will not trigger an exception.
+	 *
+	 * @throws BabelCache_Exception  if one of the arguments is malformed
+	 * @param  string $namespace     namespace
+	 * @param  string $key           key
+	 * @return string                'namespace$key' or 'namespace'
 	 */
 	protected function getFullKeyHelper($namespace, $key) {
 		$fullKey = $this->checkString($namespace);
