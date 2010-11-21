@@ -81,7 +81,13 @@ abstract class BabelCache_Factory {
 		return $cache;
 	}
 
-	abstract protected function getMemcacheAddress(); // array(host, port)
-	abstract protected function getPrefix();          // string
-	abstract protected function getCacheDirectory();  // string
+	protected function getMemcacheAddress() {
+		return array('localhost', 11211);
+	}
+
+	protected function getPrefix() {
+		return '';
+	}
+
+	abstract protected function getCacheDirectory();
 }
