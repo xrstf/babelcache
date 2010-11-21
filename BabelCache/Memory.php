@@ -8,11 +8,12 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-/**
- * @ingroup cache
- */
 class BabelCache_Memory extends BabelCache implements BabelCache_Interface {
 	protected $data = array();
+
+	public static function isAvailable() {
+		return true;
+	}
 
 	public function lock($namespace, $key, $duration = 1) {
 		return true;
@@ -27,32 +28,20 @@ class BabelCache_Memory extends BabelCache implements BabelCache_Interface {
 	}
 
 	public function set($namespace, $key, $value) {
-		$namespace = self::cleanupNamespace($namespace);
-		$key       = self::cleanupKey($key);
-
 		$this->data[$namespace][$key] = $value;
 		return $value;
 	}
 
 	public function exists($namespace, $key) {
-		$namespace = self::cleanupNamespace($namespace);
-		$key       = self::cleanupKey($key);
-
 		// in_array, weil isset(null) = false ist.
 		return isset($this->data[$namespace]) && (isset($this->data[$namespace][$key]) || in_array($key, array_keys($this->data[$namespace])));
 	}
 
 	public function get($namespace, $key, $default = null) {
-		$namespace = self::cleanupNamespace($namespace);
-		$key       = self::cleanupKey($key);
-
 		return $this->exists($namespace, $key) ? $this->data[$namespace][$key] : $default;
 	}
 
 	public function delete($namespace, $key) {
-		$namespace = self::cleanupNamespace($namespace);
-		$key       = self::cleanupKey($key);
-
 		unset($this->data[$namespace][$key]);
 	}
 
@@ -61,7 +50,6 @@ class BabelCache_Memory extends BabelCache implements BabelCache_Interface {
 			return true;
 		}
 
-		$namespace = self::cleanupNamespace($namespace);
 		unset($this->data[$namespace]);
 
 		if (!$recursive) {

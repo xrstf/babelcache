@@ -8,9 +8,6 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-/**
- * @ingroup cache
- */
 class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	protected $dataDir    = '';
 	protected $quickCache = null;
@@ -34,8 +31,15 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 		}
 	}
 
+	/**
+	 * @return boolean  always true
+	 */
+	public static function isAvailable() {
+		return true;
+	}
+
 	public function lock($namespace, $key, $duration = 1) {
-		$key = parent::getFullKeyHelper($namespace, $key);
+		$key = $this->getFullKeyHelper($namespace, $key);
 		$dir = parent::concatPath($this->dataDir, 'lock#'.$key);
 
 		clearstatcache();
@@ -43,7 +47,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	}
 
 	public function unlock($namespace, $key) {
-		$key = parent::getFullKeyHelper($namespace, $key);
+		$key = $this->getFullKeyHelper($namespace, $key);
 		$dir = parent::concatPath($this->dataDir, 'lock#'.$key);
 
 		clearstatcache();
@@ -51,7 +55,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	}
 
 	public function waitForObject($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 50) {
-		$key            = parent::getFullKeyHelper($namespace, $key);
+		$key            = $this->getFullKeyHelper($namespace, $key);
 		$dir            = parent::concatPath($this->dataDir, 'lock#'.$key);
 		$start          = microtime(true);
 		$waited         = 0;
@@ -270,5 +274,32 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 		catch (UnexpectedValueException $e) {
 			return false;
 		}
+	}
+
+	/**
+	 * @param string $namespace
+	 */
+	protected static function getDirFromNamespace($namespace) {
+		return str_replace('.', DIRECTORY_SEPARATOR, $namespace);
+	}
+
+	/**
+	 * @param string $args  Call this method with as many arguments as you want.
+	 */
+	protected static function concatPath($args) {
+		$args = func_get_args();
+		return implode(DIRECTORY_SEPARATOR, $args);
+	}
+
+	/**
+	 * Diese Methode sagt den einzelnen Caches, welches Zeichen weder in
+	 * Namespacenamen noch in Keys vorkommen darf. Damit können die
+	 * Implementierungen dieses Zeichen dann verwenden, um interne Strukturen
+	 * zu kennzeichnen.
+	 *
+	 * @return string
+	 */
+	protected static function getSafeDirChar() {
+		return '~';
 	}
 }

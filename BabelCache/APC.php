@@ -8,11 +8,17 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-/**
- * @ingroup cache
- */
 class BabelCache_APC extends BabelCache_Abstract {
-	private static $hasExistsMethod = null;
+	private $hasExistsMethod = null;
+
+	public function __construct() {
+		$this->hasExistsMethod = function_exists('apc_exists');
+	}
+
+	public static function isAvailable() {
+		// Wir müssen auch prüfen, ob Werte gespeichert werden können (oder ob nur der Opcode-Cache aktiviert ist).
+		return function_exists('apc_store') && apc_store('test', 1, 1);
+	}
 
 	public function getMaxKeyLength() {
 		return 200; // unbekannt -> Schätzwert
@@ -22,26 +28,13 @@ class BabelCache_APC extends BabelCache_Abstract {
 		return true;
 	}
 
-	private static function hasExistsMethod() {
-		if (self::$hasExistsMethod === null) {
-			self::$hasExistsMethod = function_exists('apc_exists');
-		}
-
-		return self::$hasExistsMethod;
-	}
-
-	public static function isAvailable() {
-		// Wir müssen auch prüfen, ob Werte gespeichert werden können (oder ob nur der Opcode-Cache aktiviert ist).
-		return function_exists('apc_store') && apc_store('test', 1, 1);
-	}
-
 	protected function _getRaw($key) {
 		return apc_fetch($key);
 	}
 
 	protected function _get($key) {
 		$value = apc_fetch($key);
-		return self::hasExistsMethod() ? $value : unserialize($value);
+		return $this->hasExistsMethod ? $value : unserialize($value);
 	}
 
 	protected function _setRaw($key, $value, $expiration) {
@@ -49,7 +42,7 @@ class BabelCache_APC extends BabelCache_Abstract {
 	}
 
 	protected function _set($key, $value, $expiration) {
-		if (!self::hasExistsMethod()) $value = serialize($value);
+		if (!$this->hasExistsMethod) $value = serialize($value);
 		return apc_store($key, $value, $expiration);
 	}
 
@@ -58,7 +51,7 @@ class BabelCache_APC extends BabelCache_Abstract {
 	}
 
 	protected function _isset($key) {
-		if (self::hasExistsMethod()) return apc_exists($key);
+		if ($this->hasExistsMethod) return apc_exists($key);
 		return apc_fetch($key) !== false;
 	}
 

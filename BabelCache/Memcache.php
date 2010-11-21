@@ -8,9 +8,6 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-/**
- * @ingroup cache
- */
 class BabelCache_Memcache extends BabelCache_Abstract {
 	protected $memcached = null;
 
@@ -23,12 +20,10 @@ class BabelCache_Memcache extends BabelCache_Abstract {
 	}
 
 	public function __construct($host = 'localhost', $port = 11211) {
-		global $I18N;
-
 		$this->memcached = new Memcache();
 
 		if (!$this->memcached->connect($host, $port)) {
-			throw new BabelCache_Exception($I18N->msg('BabelCache_memcache_error', $host, $port));
+			throw new BabelCache_Exception('Could not connect to Memcache @ '.$host.':'.$port.'!');
 		}
 	}
 
@@ -49,14 +44,29 @@ class BabelCache_Memcache extends BabelCache_Abstract {
 		return $available;
 	}
 
-	protected function _getRaw($key) { return $this->memcached->get($key); }
-	protected function _get($key)    { return unserialize($this->memcached->get($key)); }
+	protected function _getRaw($key) {
+		return $this->memcached->get($key);
+	}
 
-	protected function _setRaw($key, $value, $expiration) { return $this->memcached->set($key, $value, 0, $expiration); }
-	protected function _set($key, $value, $expiration)    { return $this->memcached->set($key, serialize($value), 0, $expiration); }
+	protected function _get($key) {
+		return unserialize($this->memcached->get($key));
+	}
 
-	protected function _delete($key) { return $this->memcached->delete($key);        }
-	protected function _isset($key)  { return $this->memcached->get($key) !== false; }
+	protected function _setRaw($key, $value, $expiration) {
+		return $this->memcached->set($key, $value, 0, $expiration);
+	}
+
+	protected function _set($key, $value, $expiration) {
+		return $this->memcached->set($key, serialize($value), 0, $expiration);
+	}
+
+	protected function _delete($key) {
+		return $this->memcached->delete($key);
+	}
+
+	protected function _isset($key) {
+		return $this->memcached->get($key) !== false;
+	}
 
 	protected function _increment($key) {
 		return $this->memcached->increment($key) !== false;

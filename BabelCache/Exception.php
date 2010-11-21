@@ -8,7 +8,4 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-/**
- * @ingroup cache
- */
 class BabelCache_Exception extends Exception { }

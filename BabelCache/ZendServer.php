@@ -8,9 +8,6 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-/**
- * @ingroup cache
- */
 class BabelCache_ZendServer extends BabelCache_Abstract {
 	public function getMaxKeyLength() {
 		return 200; // unbekannt -> Schätzwert
@@ -25,14 +22,29 @@ class BabelCache_ZendServer extends BabelCache_Abstract {
 		return function_exists('zend_shm_cache_store') && ini_get('zend_datacache.enable') && zend_shm_cache_store('test', 1, 1);
 	}
 
-	protected function _getRaw($key) { return zend_shm_cache_fetch($key); }
-	protected function _get($key)    { return zend_shm_cache_fetch($key); }
+	protected function _getRaw($key) {
+		return zend_shm_cache_fetch($key);
+	}
 
-	protected function _setRaw($key, $value, $expiration) { return zend_shm_cache_store($key, $value, $expiration); }
-	protected function _set($key, $value, $expiration)    { return zend_shm_cache_store($key, $value, $expiration); }
+	protected function _get($key) {
+		return zend_shm_cache_fetch($key);
+	}
 
-	protected function _delete($key) { return zend_shm_cache_delete($key);          }
-	protected function _isset($key)  { return zend_shm_cache_fetch($key) !== false; }
+	protected function _setRaw($key, $value, $expiration) {
+		return zend_shm_cache_store($key, $value, $expiration);
+	}
+
+	protected function _set($key, $value, $expiration) {
+		return zend_shm_cache_store($key, $value, $expiration);
+	}
+
+	protected function _delete($key) {
+		return zend_shm_cache_delete($key);
+	}
+
+	protected function _isset($key) {
+		return zend_shm_cache_fetch($key) !== false;
+	}
 
 	protected function _increment($key) {
 		$value = zend_shm_cache_fetch($key);

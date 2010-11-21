@@ -8,9 +8,6 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-/**
- * @ingroup cache
- */
 class BabelCache_eAccelerator extends BabelCache_Abstract {
 	public function getMaxKeyLength() {
 		return 200; // unbekannt -> Schätzwert
@@ -25,17 +22,37 @@ class BabelCache_eAccelerator extends BabelCache_Abstract {
 		return function_exists('eaccelerator_put') && eaccelerator_put('test', 1, 1);
 	}
 
-	protected function _getRaw($key) { return eaccelerator_get($key); }
-	protected function _get($key)    { return eaccelerator_get($key); }
+	protected function _getRaw($key) {
+		return eaccelerator_get($key);
+	}
 
-	protected function _setRaw($key, $value, $expiration) { return eaccelerator_put($key, $value, $expiration); }
-	protected function _set($key, $value, $expiration)    { return eaccelerator_put($key, $value, $expiration); }
+	protected function _get($key) {
+		return unserialize(eaccelerator_get($key));
+	}
 
-	protected function _delete($key) { return eaccelerator_rm($key);            }
-	protected function _isset($key)  { return eaccelerator_get($key) !== false; }
+	protected function _setRaw($key, $value, $expiration) {
+		return eaccelerator_put($key, $value, $expiration);
+	}
 
-	protected function _lock($key)   { return eaccelerator_lock($key);   }
-	protected function _unlock($key) { return eaccelerator_unlock($key); }
+	protected function _set($key, $value, $expiration) {
+		return eaccelerator_put($key, serialize($value), $expiration);
+	}
+
+	protected function _delete($key) {
+		return eaccelerator_rm($key);
+	}
+
+	protected function _isset($key) {
+		return eaccelerator_get($key) !== null;
+	}
+
+	protected function _lock($key) {
+		return eaccelerator_lock($key);
+	}
+
+	protected function _unlock($key) {
+		return eaccelerator_unlock($key);
+	}
 
 	protected function _increment($key) {
 		$value = eaccelerator_get($key);

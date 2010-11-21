@@ -8,9 +8,6 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-/**
- * @ingroup cache
- */
 class BabelCache_XCache extends BabelCache_Abstract {
 	public function getMaxKeyLength() {
 		return 200; // unbekannt -> Schätzwert
@@ -34,10 +31,6 @@ class BabelCache_XCache extends BabelCache_Abstract {
 	}
 
 	protected function _setRaw($key, $value, $expiration) {
-		if (is_object($value)) {
-			throw new BabelCache_Exception('Objekte können nicht raw in XCache gespeichert werden!');
-		}
-
 		return xcache_set($key, $value, $expiration);
 	}
 

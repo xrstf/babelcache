@@ -9,183 +9,6 @@
  */
 
 abstract class BabelCache {
-	protected $expiration = 0; ///< int  never expire
-
-	private static $instances       = null;   ///< array
-	private static $cachingStrategy = null;   ///< string
-	private static $cacheDisabled   = false;  ///< boolean
-
-	/**
-	 * @return boolean  always true
-	 */
-	public static function isAvailable() {
-		return true;
-	}
-
-	public static function disableCaching() {
-		self::$cacheDisabled = true;
-	}
-
-	public static function enableCaching() {
-		self::$cacheDisabled = false;
-	}
-
-	/**
-	 * @param  string $forceCache
-	 * @return BabelCache_Interface
-	 */
-	public static function factory($cacheName) {
-		if (self::$cacheDisabled) {
-			return self::factory('Blackhole');
-		}
-
-		$className = 'BabelCache_'.$cacheName;
-
-		if (!class_exists($className)) {
-			throw new BabelCache_Exception('Invalid class given.');
-		}
-
-		if (!empty(self::$instances[$className])) {
-			return self::$instances[$className];
-		}
-
-		// check availability
-
-		if (!call_user_func(array($className, 'isAvailable'))) {
-			throw new BabelCache_Exception('The chosen cache is not available.');
-		}
-
-		self::$instances[$className] = new $className();
-		return self::$instances[$className];
-	}
-
-	/**
-	 * @throws BabelCache_Exception
-	 * @param  string $namespace
-	 */
-	protected static function cleanupNamespace($namespace) {
-		return self::trimString($namespace, 'An empty namespace was given.');
-	}
-
-	/**
-	 * @throws BabelCache_Exception
-	 * @param  string $key
-	 */
-	protected static function cleanupKey($key) {
-		return self::trimString($key, 'An empty key was given.');
-	}
-
-	private static function trimString($str, $exception) {
-		$str = trim($str); // normale Whitespaces entfernen
-		$str = preg_replace('#[^a-z0-9_\.-]#i', '_', $str);
-		$str = preg_replace('#\.{2,}#', '.', $str);
-		$str = trim($str, '.'); // führende und abschließende Punkte entfernen
-
-		if (strlen($str) == 0) {
-			throw new BabelCache_Exception($exception);
-		}
-
-		return strtolower($str);
-	}
-
-	/**
-	 * @param string $namespace
-	 */
-	protected static function getDirFromNamespace($namespace) {
-		return str_replace('.', DIRECTORY_SEPARATOR, $namespace);
-	}
-
-	/**
-	 * @param string $namespace
-	 * @param string $newSep
-	 */
-	protected static function replaceSeparator($namespace, $newSep) {
-		return str_replace('.', $newSep, $namespace);
-	}
-
-	/**
-	 * @param string $args  Call this method with as many arguments as you want.
-	 */
-	protected static function concatPath($args) {
-		$args = func_get_args();
-		return implode(DIRECTORY_SEPARATOR, $args);
-	}
-
-	/**
-	 * Diese Methode sagt den einzelnen Caches, welches Zeichen weder in
-	 * Namespacenamen noch in Keys vorkommen darf. Damit können die
-	 * Implementierungen dieses Zeichen dann verwenden, um interne Strukturen
-	 * zu kennzeichnen.
-	 *
-	 * @return string
-	 */
-	protected static function getSafeDirChar() {
-		return '~';
-	}
-
-	/**
-	 * @param string $prefix
-	 */
-	public function setNamespacePrefix($prefix) {
-		$this->namespacePrefix = self::cleanupNamespace($prefix);
-	}
-
-	/**
-	 * @param int $expiration
-	 */
-	public function setExpiration($expiration) {
-		$this->expiration = abs((int) $expiration);
-	}
-
-	/**
-	 * @throws BabelCache_Exception
-	 * @param  string $key
-	 * @param  int    $length
-	 */
-	protected static function checkKeyLength($key, $length) {
-		if (strlen($key) > $length) {
-			throw new BabelCache_Exception('The given key is too long. At most '.$length.' characters are allowed.');
-		}
-	}
-
-	/**
-	 * @param  string $namespace
-	 * @param  string $key
-	 * @return string
-	 */
-	protected function getFullKeyHelper($namespace, $key) {
-		$fullKey = self::cleanupNamespace($namespace);
-
-		if (strlen($key) > 0) {
-			$fullKey .= '$'.self::cleanupKey($key);
-		}
-
-		return $fullKey;
-	}
-
-	/**
-	 * @param  string  $path
-	 * @param  string  $keyName
-	 * @param  boolean $excludeLastVersion
-	 * @return string
-	 */
-	protected static function versionPathHelper($path, $keyName, $excludeLastVersion = false) {
-		if ($excludeLastVersion) {
-			$lastNode = array_pop($path);
-			$lastNode = reset(explode('@', $lastNode, 2));
-
-			$path[] = $lastNode;
-		}
-
-		$path = implode('.', $path);
-
-		if (!empty($keyName)) {
-			$path .= '$'.$keyName;
-		}
-
-		return $path;
-	}
-
 	/**
 	 * Cachekey erzeugen
 	 *
@@ -240,7 +63,7 @@ abstract class BabelCache {
 					break;
 
 				case 'resource':
-					$key[] = 'r'.preg_replace('#[^a-z0-9_]#i', '_', get_resource_type($var));
+					$key[] = 'r'.str_replace(' ', '_', get_resource_type($var));
 					break;
 
 				case 'array':
@@ -254,5 +77,34 @@ abstract class BabelCache {
 		}
 
 		return implode('_', $key);
+	}
+
+	protected function checkString($str) {
+		if (
+			strlen($str) === 0 ||
+			$str[0] === '.' ||
+			$str[strlen($str)-1] === '.' ||
+			strpos($str, '..') !== false ||
+			!preg_match('#^[a-z0-9_.-]+$#i', $str)
+		) {
+			throw new BabelCache_Exception('A malformed string was given.');
+		}
+
+		return $str;
+	}
+
+	/**
+	 * @param  string $namespace
+	 * @param  string $key
+	 * @return string
+	 */
+	protected function getFullKeyHelper($namespace, $key) {
+		$fullKey = $this->checkString($namespace);
+
+		if (strlen($key) > 0) {
+			$fullKey .= '$'.$this->checkString($key);
+		}
+
+		return $fullKey;
 	}
 }

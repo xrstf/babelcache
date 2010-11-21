@@ -15,10 +15,12 @@
  * anderen Implementierungen, um in nutzendem Code nicht auf null testen muss,
  * sondern einfach diese Klasse angeben kann, wenn man "deaktiviertes Caching"
  * meint.
- *
- * @ingroup cache
  */
 class BabelCache_Blackhole extends BabelCache implements BabelCache_Interface {
+	public static function isAvailable() {
+		return true;
+	}
+
 	public function set($namespace, $key, $value) {
 		return $value;
 	}

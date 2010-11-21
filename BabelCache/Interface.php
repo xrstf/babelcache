@@ -12,11 +12,8 @@
  * Dieses Interface kann von Addons implementiert werden, um Redaxo eine
  * spezifische Cache-Implementierung zu geben. Für besondere Systemumgebungen
  * können speziell angepasste Cache-Implementierungen sinnvoll sein.
- *
- * @ingroup cache
  */
 interface BabelCache_Interface {
-
 	/**
 	 * Setzt einen Wert in den Redaxo Cache
 	 *
@@ -48,7 +45,6 @@ interface BabelCache_Interface {
 	public function lock($namespace, $key, $duration = 1);
 	public function unlock($namespace, $key);
 	public function waitForObject($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 50);
-
 	public function flush($namespace, $recursive = false);
 
 	public static function isAvailable();
