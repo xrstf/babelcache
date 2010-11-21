@@ -1,8 +1,12 @@
 <?php
 
+error_reporting(E_ALL | E_STRICT | E_NOTICE);
+ini_set('display_errors', 'On');
+
 require '../Autoload.php';
 require 'Library.php';
 require 'TestFactory.php';
+require 'BabelCacheTest.php';
 
 print '<pre>';
 
@@ -27,6 +31,18 @@ catch (BabelCache_Exception $e) {
 catch (Exception $e) {
 	fail('The factory threw a wrong exception ('.get_class($e).').');
 }
+
+info('Testing allowed namespace formats...');
+
+$tester = new BabelCacheTest();
+assertTrue($tester->testString('foo'), 'foo is a valid namespace.');
+assertTrue($tester->testString('foo.bar'), 'foo.bar is a valid namespace.');
+assertTrue($tester->testString('foo.-test-.123'), 'foo.-test-.123 is a valid namespace.');
+
+assertFalse($tester->testString('.'), '. is not a valid namespace.');
+assertFalse($tester->testString('.foo'), '.foo is not a valid namespace.');
+assertFalse($tester->testString(''), 'Namespace cannot be empty.');
+assertFalse($tester->testString('$pecia1 aren\'t allowed.'), 'Special characters are not allowed.');
 
 $caches = array(
 	'XCache',
@@ -78,6 +94,11 @@ foreach ($caches as $cache) {
 		assertTrue($cache->exists('tests2', 'foo6'), 'exists() works.');
 
 		$cache->flush('tests2', true);
+
+		$cache->set('tests2', 'foo', 3.41);
+		$cache->set('tests2', 'foo', false);
+
+		assertEquals($cache->get('tests2', 'foo'), false, 'set() can overwrite existing values.');
 	}
 	catch (Exception $e) {
 		fail('Exception: '.$e->getMessage());
