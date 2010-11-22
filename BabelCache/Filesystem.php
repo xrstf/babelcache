@@ -230,12 +230,13 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	 * Checks if the target directory exists
 	 *
 	 * @param  string $namespace  the target namespace
+	 * @param  string $root       the root cach directory
 	 * @return boolean            true if the directory exists, else false
 	 */
-	private static function dataDirExists($namespace) {
+	private static function dataDirExists($namespace, $root) {
 		$namespace = self::getDirFromNamespace($namespace);
 		$dataDir   = 'data'.self::$safeDirChar;
-		$dirname   = $this->dataDir.'/'.$namespace.'/'.$dataDir;
+		$dirname   = $root.'/'.$namespace.'/'.$dataDir;
 
 		clearstatcache();
 		return is_dir($dirname);
@@ -257,7 +258,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 		$dir       = $this->dataDir;
 		$hash      = md5($key);
 
-		if (!self::dataDirExists($namespace)) {
+		if (!self::dataDirExists($namespace, $dir)) {
 			self::createNamespaceDir(explode('.', $namespace), $dir, $hash);
 		}
 
