@@ -8,6 +8,16 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+/**
+ * Zend Server
+ *
+ * This class wraps the methods provied by Zend Server for caching vardata.
+ * Please note that this implementation does not use the native namespacing
+ * features, but the generic implementation of BabelCache_Abstract.
+ *
+ * @author Christoph Mewes
+ * @see    http://files.zend.com/help/Zend-Platform/zend_cache_api.htm
+ */
 class BabelCache_ZendServer extends BabelCache_Abstract {
 	public function getMaxKeyLength() {
 		return 200; // unbekannt -> Schätzwert

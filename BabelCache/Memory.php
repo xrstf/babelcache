@@ -8,8 +8,22 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+/**
+ * Runtime cache
+ *
+ * This class will store the cached data only for the current request. Its main
+ * purpose is to aid the filesystem cache in storing the data in memory, so that
+ * repeated calls don't have to read and deserialize the data from disk every
+ * time.
+ *
+ * Lockig does of course not make any sense, so the corresponding methods will
+ * just return true.
+ *
+ * @author Christoph Mewes
+ * @see    BabelCache_Filesystem
+ */
 class BabelCache_Memory extends BabelCache implements BabelCache_Interface {
-	protected $data = array();
+	protected $data = array();  ///< array  contains the cached data {namespace => {key: value, key: value}}
 
 	public static function isAvailable() {
 		return true;

@@ -8,6 +8,16 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+/**
+ * eAccelerator
+ *
+ * eAccelerator is a free open-source PHP accelerator & optimizer. Be aware that
+ * in recent versions (> 0.9.5), you have to enable the vardata functions (put,
+ * get, ...) via the compile switch --with-eaccelerator-shared-memory.
+ *
+ * @author Christoph Mewes
+ * @see    http://eaccelerator.net/
+ */
 class BabelCache_eAccelerator extends BabelCache_Abstract {
 	public function getMaxKeyLength() {
 		return 200; // unbekannt -> Schätzwert
@@ -46,10 +56,22 @@ class BabelCache_eAccelerator extends BabelCache_Abstract {
 		return eaccelerator_get($key) !== null;
 	}
 
+	/**
+	 * Creates a lock
+	 *
+	 * @param  string $key  the key to lock
+	 * @return boolean      true if successful, else false
+	 */
 	protected function _lock($key) {
 		return eaccelerator_lock($key);
 	}
 
+	/**
+	 * Releases a lock
+	 *
+	 * @param  string $key  the key to unlock
+	 * @return boolean      true if successful, else false
+	 */
 	protected function _unlock($key) {
 		return eaccelerator_unlock($key);
 	}

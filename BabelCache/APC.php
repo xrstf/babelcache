@@ -8,9 +8,26 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+/**
+ * Alternative PHP Cache
+ *
+ * APC is a PECL module featuring both opcode and vardata caching. This class
+ * wraps its functionality and already handles apc_exists() (added in APC 3.1.4).
+ *
+ * On APC < 3.1.4, all data will be manually serialized by this class, else
+ * it will rely on APC to handle complex data.
+ *
+ * @author Christoph Mewes
+ * @see    http://php.net/manual/de/book.apc.php
+ */
 class BabelCache_APC extends BabelCache_Abstract {
-	private $hasExistsMethod = null;
+	private $hasExistsMethod = null; ///< boolean  true if apc_exists() exists, else false
 
+	/**
+	 * Constructor
+	 *
+	 * Only checks for apc_exists().
+	 */
 	public function __construct() {
 		$this->hasExistsMethod = function_exists('apc_exists');
 	}
@@ -59,10 +76,26 @@ class BabelCache_APC extends BabelCache_Abstract {
 		return apc_inc($key) !== false;
 	}
 
+	/**
+	 * Creates a lock
+	 *
+	 * This method will use apc_add() to create a lock.
+	 *
+	 * @param  string $key  the key to lock
+	 * @return boolean      true if successful, else false
+	 */
 	protected function _lock($key) {
 		return apc_add($key, 1);
 	}
 
+	/**
+	 * Releases a lock
+	 *
+	 * This method will use apc_delete() to remove a lock.
+	 *
+	 * @param  string $key  the key to unlock
+	 * @return boolean      true if successful, else false
+	 */
 	protected function _unlock($key) {
 		return apc_delete($key);
 	}

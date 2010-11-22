@@ -9,9 +9,10 @@
  */
 
 /**
- * Dieses Interface kann von Addons implementiert werden, um Redaxo eine
- * spezifische Cache-Implementierung zu geben. Für besondere Systemumgebungen
- * können speziell angepasste Cache-Implementierungen sinnvoll sein.
+ * Generic cache interface
+ *
+ * This interface is used for all provided caches and provides a common set of
+ * methods that all caches support. It's kind of the least common denominator.
  *
  * @author Christoph Mewes
  */

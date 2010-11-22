@@ -8,6 +8,17 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+/**
+ * XCache
+ *
+ * This class wraps the XCache extension, which provides both opcode and vardata
+ * caching.
+ *
+ * Using XCache is my personal recommendation, as it's fast and reliable.
+ *
+ * @author Christoph Mewes
+ * @see    http://xcache.lighttpd.net/
+ */
 class BabelCache_XCache extends BabelCache_Abstract {
 	public function getMaxKeyLength() {
 		return 200; // unbekannt -> Schätzwert

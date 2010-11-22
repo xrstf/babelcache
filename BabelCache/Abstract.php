@@ -41,14 +41,6 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	 */
 	abstract public function hasLocking();
 
-	abstract protected function _get($key);
-	abstract protected function _getRaw($key);
-	abstract protected function _set($key, $value, $expiration);
-	abstract protected function _setRaw($key, $value, $expiration);
-	abstract protected function _delete($key);
-	abstract protected function _isset($key);
-	abstract protected function _increment($key);
-
 	/**
 	 * Checks whether a caching system is avilable
 	 *
@@ -441,4 +433,83 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 
 		return $hasLock;
 	}
+
+	/**
+	 * Wrapper method for getting a value from the cache
+	 *
+	 * @param  string $key  the element's key
+	 * @return mixed        the value or false if it wasn't found
+	 */
+	abstract protected function _get($key);
+
+	/**
+	 * Special wrapper for scalar data
+	 *
+	 * This wrapper is used when this implementation needs to store simple scalar
+	 * values (i.e. version numbers or locks). It exists so that some caching
+	 * systems can skip the serialization step when storing data.
+	 *
+	 * This method is not publicly available.
+	 *
+	 * @param  string $key  the element's key
+	 * @return mixed        the value or false if it wasn't found
+	 */
+	abstract protected function _getRaw($key);
+
+	/**
+	 * Wrapper method for setting a value in the cache
+	 *
+	 * @param  string $key         the element's key
+	 * @param  string $value       the element's value
+	 * @param  string $expiration  the expiration time in seconds
+	 * @return mixed               the value just set
+	 */
+	abstract protected function _set($key, $value, $expiration);
+
+	/**
+	 * Wrapper method for setting a scalar value in the cache
+	 *
+	 * This wrapper is used when this implementation needs to read simple scalar
+	 * values (i.e. version numbers or locks). It exists so that some caching
+	 * systems can skip the deserialization step when reading data.
+	 *
+	 * This method is not publicly available.
+	 *
+	 * @param  string $key         the element's key
+	 * @param  string $value       the element's value
+	 * @param  string $expiration  the expiration time in seconds
+	 * @return mixed               the value just set
+	 */
+	abstract protected function _setRaw($key, $value, $expiration);
+
+	/**
+	 * Wrapper method for deleting a value from the cache
+	 *
+	 * @param  string $key  the element's key
+	 * @return boolean      true if the value was deleted, else false
+	 */
+	abstract protected function _delete($key);
+
+	/**
+	 * Wrapper method for testing for existence
+	 *
+	 * This method exists so that get() can distinguish between 'false' as a
+	 * value and 'false' as a sign of missing elements.
+	 *
+	 * @param  string $key  the element's key
+	 * @return boolean      true if the value exists, else false
+	 */
+	abstract protected function _isset($key);
+
+	/**
+	 * Wrapper method for adding 1 to a value
+	 *
+	 * Since many caching systems directly support incremeting a value, this
+	 * wrapper was added. Systems without support should just get the value,
+	 * add 1 and store it again.
+	 *
+	 * @param  string $key  the element's key
+	 * @return boolean      true if the increment was successful, else false
+	 */
+	abstract protected function _increment($key);
 }

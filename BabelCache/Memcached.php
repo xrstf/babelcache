@@ -8,6 +8,16 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+/**
+ * Memcached wrapper
+ *
+ * This class wraps the memcached extension of PHP. Don't mix it up with the
+ * memcache (without d!) extension, for which you have to use
+ * BabelCache_Memcache.
+ *
+ * @author Christoph Mewes
+ * @see    http://www.php.net/manual/de/book.memcached.php
+ */
 class BabelCache_Memcached extends BabelCache_Memcache {
 	public static function isAvailable($host = 'localhost', $port = 11211) {
 		if (!class_exists('Memcached')) {

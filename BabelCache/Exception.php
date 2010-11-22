@@ -8,4 +8,10 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+/**
+ * Exception class
+ *
+ * Nothing special here, just to distinguish between BabelCache errors and
+ * other errors.
+ */
 class BabelCache_Exception extends Exception { }

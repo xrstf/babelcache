@@ -9,12 +9,14 @@
  */
 
 /**
- * Blackhole-Caching
+ * Blackhole Caching
  *
- * Dieser Cache cached gar nicht. Er existiert nur als logisches Pendant zu den
- * anderen Implementierungen, um in nutzendem Code nicht auf null testen muss,
- * sondern einfach diese Klasse angeben kann, wenn man "deaktiviertes Caching"
- * meint.
+ * This cache does not save any data at all and exists as the logical pendant
+ * to all the other, real systems. It should be used if the caching is disabled,
+ * so that code relying on a cache can use the cache instance normally without
+ * checking for null.
+ *
+ * @author Christoph Mewes
  */
 class BabelCache_Blackhole extends BabelCache implements BabelCache_Interface {
 	public static function isAvailable() {
