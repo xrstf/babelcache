@@ -21,14 +21,15 @@
  * use 'data~' in your namespaces, so no collisions can occur.
  *
  * Even though most modern filesystems can easily handle thousands of files in
- * a single directory, this cache will automatically split your data up into
+ * a single directory, this cache will automatically distribute your data in
  * smaller directories, based on the calculated hash. So if the key 'myvalue'
  * is hashed '3423g4234...', the file will be placed in '/data~/34/3423g4234'.
  *
  * By changing cutHash(), you can adjust the length of those splitter
  * directories (1 if you only have a few values, 10 if you expected gazillions
  * of values). You can't change this value at runtime since it would totally
- * mess up your cache directories.
+ * mess up your cache directories. Returning an empty string disables the
+ * distribution.
  *
  * For faster access time, all read values will be stored in an internal memory
  * cache.
@@ -214,8 +215,12 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 
 			// Jetzt kommen die kleinen Verzeichnisse...
 
-			$dir = $dir.'/'.self::cutHash($hash);
-			self::makeDir($dir);
+			$hash = self::cutHash($hash);
+
+			if (strlen($hash) > 0) {
+				$dir = $dir.'/'.$hash;
+				self::makeDir($dir);
+			}
 
 			return true;
 		}
@@ -261,9 +266,13 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 		$namespace = self::getDirFromNamespace($namespace);
 		$dataDir   = 'data'.self::$safeDirChar;
 		$hashPart  = self::cutHash($hash);
-		$dir       = $dir.'/'.$namespace.'/'.$dataDir.'/'.$hashPart;
+		$dir       = $dir.'/'.$namespace.'/'.$dataDir;
 
-		self::makeDir($dir);
+		if (strlen($hashPart) > 0) {
+			$dir .= '/'.$hashPart;
+			self::makeDir($dir);
+		}
+
 		return $dir.'/'.$hash;
 	}
 
