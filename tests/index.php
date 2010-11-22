@@ -107,6 +107,9 @@ foreach ($caches as $cache) {
 		$cache->set('tests2', 'foo', false);
 
 		assertEquals($cache->get('tests2', 'foo'), false, 'set() can overwrite existing values.');
+
+		$cache->delete('tests2', 'foo');
+		assertFalse($cache->exists('tests2', 'foo'), 'delete() works.');
 	}
 	catch (Exception $e) {
 		fail('Exception: '.$e->getMessage());
