@@ -8,28 +8,58 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+/**
+ * Base factory
+ *
+ * This class can be used to create %BabelCache instances. Be aware that you
+ * have to subclass it and at least need to implement getCacheDirectory().
+ *
+ * When caching is globally disabled, the factory will always return the
+ * blackhole cache.
+ *
+ * @author Christoph Mewes
+ */
 abstract class BabelCache_Factory {
-	private $instances     = array();  ///< array
+	private $instances     = array();  ///< array    list of caching instances
 	private $cacheDisabled = false;    ///< boolean
 
+	/**
+	 * Disable caching globally
+	 *
+	 * After this method is called, getCache() will always return the blackhole
+	 * cache.
+	 */
 	public function disableCaching() {
 		$this->cacheDisabled = true;
 	}
 
+	/**
+	 * Enable caching globally
+	 *
+	 * This method re-enables the caching, so that getCache() works normally
+	 * again.
+	 */
 	public function enableCaching() {
 		$this->cacheDisabled = false;
 	}
 
 	/**
-	 * @param  string $cacheName
-	 * @return BabelCache_Interface
+	 * Create / get cache instance
+	 *
+	 * This method will create a new cache instance, if none was found. If an
+	 * instance is already known, it is returned immediatly.
+	 *
+	 * This method also initializes the cache by setting certain parameters. To
+	 * alter them, override the corresponding methods.
+	 *
+	 * @throws BabelCache_Exception  if the class was not found or the cache is not available
+	 * @param  string $className     the full class name of the cache you want to get
+	 * @return BabelCache_Interface  the requested cache instance (singleton)
 	 */
-	public function getCache($cacheName) {
+	public function getCache($className) {
 		if ($this->cacheDisabled) {
-			return $this->factory('Blackhole');
+			return $this->factory('BabelCache_Blackhole');
 		}
-
-		$className = 'BabelCache_'.$cacheName;
 
 		if (!class_exists($className)) {
 			throw new BabelCache_Exception('Invalid class given.');
@@ -81,13 +111,47 @@ abstract class BabelCache_Factory {
 		return $cache;
 	}
 
+	/**
+	 * Return memcache address
+	 *
+	 * This method should return the memcache server address as a single
+	 * array(host, port).
+	 *
+	 * @return array  array(host, port)
+	 */
 	protected function getMemcacheAddress() {
 		return array('localhost', 11211);
 	}
 
+	/**
+	 * Return caching prefix (only useful for in-memory caches)
+	 *
+	 * This method should return a unique string that identifies the current
+	 * system installation. The prefix will be put in front of all cache keys,
+	 * so that multiple installations of the same system can co-exist on the
+	 * same machine and share the same XCache.
+	 *
+	 * Some caching systems can do this themselves, but mostly only based on
+	 * the current vhost setting. As many developers often develop multiple
+	 * projects on the same vhost, this helps to keep the projects separated.
+	 *
+	 * @return string  the prefix (can be empty, if you know what you're doing)
+	 */
 	protected function getPrefix() {
 		return '';
 	}
 
+	/**
+	 * Returns the cache directory
+	 *
+	 * This method will only be used if you use the filesystem cache. It should
+	 * return the absolute path to an already existing directory (CHMOD 777).
+	 * Trailing slashes are not important.
+	 *
+	 * See the TestFactory (inside the tests directory) for an example on how
+	 * to implement this method.
+	 *
+	 * @return string  the absolute path to the cache directory
+	 */
 	abstract protected function getCacheDirectory();
 }

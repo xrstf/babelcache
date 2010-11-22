@@ -24,7 +24,7 @@ assertNotEquals('', BabelCache::generateKey(false), 'generateKey() handles false
 assertNotEquals('', BabelCache::generateKey(null), 'generateKey() handles null correctly.');
 
 $factory = new TestFactory();
-$obj     = $factory->getCache('Blackhole');
+$obj     = $factory->getCache('BabelCache_Blackhole');
 
 info('Testing the factory...');
 assertInstanceOf('BabelCache_Blackhole', $obj, 'The factory creates the right objects.');
@@ -67,7 +67,7 @@ foreach ($caches as $cache) {
 	info('Testing '.$cache.'...');
 
 	try {
-		$cache = $factory->getCache($cache);
+		$cache = $factory->getCache('BabelCache_'.$cache);
 	}
 	catch (BabelCache_Exception $e) {
 		skip($cache.' is not avilable.');
