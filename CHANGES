@@ -1,0 +1,12 @@
+v1.1.0
+======
+
+* performance improvements for filesystem cache
+* filesystem cache does not use a runtime backup cache any more, since it was
+  actually bad for the overall performance
+* BabelCache::generateKey() now works correctly on empty arrays
+
+v1.0.0
+======
+
+* initial release
