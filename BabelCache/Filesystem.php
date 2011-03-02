@@ -38,8 +38,7 @@
  * @see    BabelCache_Memory
  */
 class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
-	protected $dataDir    = '';    ///< string                absolute path to the cache directory
-	protected $quickCache = null;  ///< BabelCache_Interface  runtime cache for faster access times
+	protected $dataDir = '';    ///< string  absolute path to the cache directory
 
 	private static $safeDirChar = '~'; ///< string  special character that is used for the data directory
 
@@ -52,11 +51,8 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	 * @param string $dataDirectory  the full path to the cache directory (chmod 777)
 	 */
 	public function __construct($dataDirectory) {
-		clearstatcache();
 		self::makeDir($dataDirectory);
-
-		$this->dataDir    = $dataDirectory;
-		$this->quickCache = new BabelCache_Memory();
+		$this->dataDir = $dataDirectory;
 	}
 
 	public static function isAvailable() {
@@ -92,8 +88,6 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 			clearstatcache();
 		}
 
-		clearstatcache();
-
 		if (!is_dir($dir)) {
 			return $this->get($namespace, $key, $default);
 		}
@@ -102,10 +96,6 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	}
 
 	public function set($namespace, $key, $value) {
-		$this->checkString($namespace);
-
-		$this->quickCache->set($namespace, $key, $value);
-
 		$filename = $this->getFilename($namespace, $key);
 		$level    = error_reporting(0);
 
@@ -117,55 +107,36 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	}
 
 	public function get($namespace, $key, $default = null) {
-		$this->checkString($namespace);
+		$file = $this->getFilename($namespace, $key);
 
-		if ($this->quickCache->exists($namespace, $key)) {
-			return $this->quickCache->get($namespace, $key);
+		if (!file_exists($file)) {
+			return $default;
 		}
 
-		$data = @file_get_contents($this->getFilename($namespace, $key));
-		$data = $data === false ? $default : unserialize($data);
-
-		$this->quickCache->set($namespace, $key, $data);
-		return $data;
+		$data = file_get_contents($file);
+		return unserialize($data);
 	}
 
 	public function exists($namespace, $key) {
-		$this->checkString($namespace);
-
-		if ($this->quickCache->exists($namespace, $key)) {
-			return true;
-		}
-
 		return file_exists($this->getFilename($namespace, $key));
 	}
 
 	public function delete($namespace, $key) {
-		$this->checkString($namespace);
-
-		$this->quickCache->delete($namespace, $key);
-		clearstatcache();
-
 		return @unlink($this->getFilename($namespace, $key));
 	}
 
 	public function flush($namespace, $recursive = false) {
 		$this->checkString($namespace);
 
-		// flush quick cache
-
-		$this->quickCache->flush($namespace, $recursive);
-
 		// handle our own cache
 
-		$namespace = $this->getDirFromNamespace($namespace);
+		$namespace = self::getDirFromNamespace($namespace);
 		$root      = $this->dataDir.'/'.$namespace;
 
 		// Wenn wir rekursiv löschen, können wir wirklich alles in diesem Verzeichnis
 		// löschen.
 
 		if ($recursive) {
-			clearstatcache();
 			return $this->deleteRecursive($root);
 		}
 
@@ -174,7 +145,6 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 
 		else {
 			$dataDir = 'data'.self::$safeDirChar;
-			clearstatcache();
 			return $this->deleteRecursive($root.'/'.$dataDir);
 		}
 	}
@@ -287,7 +257,9 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	 * @return array              a sorted list ob sub-directories
 	 */
 	private static function getSubNamespaces($namespace) {
-		$namespace = self::getDirFromNamespace($this->checkString($namespace));
+		$this->checkString($namespace);
+
+		$namespace = self::getDirFromNamespace($namespace);
 		$dir       = $this->dataDir.'/'.$namespace;
 		$dataDir   = 'data'.self::$safeDirChar;
 
@@ -337,6 +309,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 			$recIterator = null;
 			$dirIterator = null;
 
+			clearstatcache();
 			error_reporting($level);
 			return $status;
 		}
@@ -367,8 +340,12 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	 * @param  string $dir           the directory to create
 	 */
 	private static function makeDir($dir) {
-		if (!is_dir($dir) && !@mkdir($dir, 0777, true)) {
-			throw new BabelCache_Exception('Can\'t create directory in '.$dir.'.');
+		if (!is_dir($dir)) {
+			if (!@mkdir($dir, 0777, true)) {
+				throw new BabelCache_Exception('Can\'t create directory in '.$dir.'.');
+			}
+
+			clearstatcache();
 		}
 	}
 
