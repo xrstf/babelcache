@@ -57,7 +57,7 @@ class BabelCache_Memcached extends BabelCache_Memcache {
 	}
 
 	protected function _isset($key) {
-		$this->memcached->get($path);
+		$this->memcached->get($key);
 		return $this->memcached->getResultCode() != Memcached::RES_NOTFOUND;
 	}
 
