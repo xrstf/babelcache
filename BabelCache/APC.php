@@ -33,8 +33,19 @@ class BabelCache_APC extends BabelCache_Abstract {
 	}
 
 	public static function isAvailable() {
-		// Wir müssen auch prüfen, ob Werte gespeichert werden können (oder ob nur der Opcode-Cache aktiviert ist).
-		return function_exists('apc_store') && apc_store('test', 1, 1);
+		static $avail = null;
+
+		if ($avail === null) {
+			if (!function_exists('apc_store')) {
+				$avail = false;
+			}
+			else {
+				apc_delete('test');
+				$avail = apc_store('test', 1, 1);
+			}
+		}
+
+		return $avail;
 	}
 
 	public function getMaxKeyLength() {
@@ -55,11 +66,14 @@ class BabelCache_APC extends BabelCache_Abstract {
 	}
 
 	protected function _setRaw($key, $value, $expiration) {
+		$this->_delete($key); // explicit delete since APC does not allow multiple store() calls during the same request
 		return apc_store($key, $value, $expiration);
 	}
 
 	protected function _set($key, $value, $expiration) {
 		if (!$this->hasExistsMethod) $value = serialize($value);
+
+		$this->_delete($key); // explicit delete since APC does not allow multiple store() calls during the same request
 		return apc_store($key, $value, $expiration);
 	}
 
