@@ -1,3 +1,11 @@
+v1.2.0
+======
+
+* fixed behaviour of apc_store() (cannot store the same value more than once
+  if it's not deleted in between)
+* fixed Memcached::_isset()
+* fixed Memcached using the Memcache (without d) API
+
 v1.1.0
 ======
 
