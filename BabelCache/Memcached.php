@@ -36,6 +36,14 @@ class BabelCache_Memcached extends BabelCache_Memcache {
 		return $available;
 	}
 
+	public function __construct($host = 'localhost', $port = 11211) {
+		$this->memcached = new Memcached();
+
+		if (!$this->memcached->addServer($host, $port)) {
+			throw new BabelCache_Exception('Could not connect to Memcached @ '.$host.':'.$port.'!');
+		}
+	}
+
 	protected function _getRaw($key) {
 		return $this->memcached->get($key);
 	}
