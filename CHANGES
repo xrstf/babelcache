@@ -1,3 +1,8 @@
+v1.2.1
+======
+
+* added locking for filesystem cache, to make it more robust on high traffic pages
+
 v1.2.0
 ======
 
