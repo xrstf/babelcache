@@ -100,7 +100,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 		$level    = error_reporting(0);
 
 		touch($filename, 0777);
-		file_put_contents($filename, serialize($value));
+		file_put_contents($filename, serialize($value), LOCK_EX);
 
 		error_reporting($level);
 		return $value;
@@ -113,7 +113,17 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 			return $default;
 		}
 
+		// lock the file
+		$handle = fopen($file, 'r');
+		flock($handle, LOCK_SH);
+
+		// read it
 		$data = file_get_contents($file);
+
+		// unlock it again
+		flock($handle, LOCK_UN);
+		fclose($handle);
+
 		return unserialize($data);
 	}
 
