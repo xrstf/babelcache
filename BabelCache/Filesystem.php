@@ -40,7 +40,9 @@
 class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	protected $dataDir = '';    ///< string  absolute path to the cache directory
 
-	private static $safeDirChar = '~'; ///< string  special character that is used for the data directory
+	private static $safeDirChar = '~';  ///< string  special character that is used for the data directory
+	private static $dirPerm     = 0777; ///< int     permissions to use for created directories
+	private static $filePerm    = 0664; ///< int     permissions to use for created files
 
 	/**
 	 * Constructor
@@ -64,7 +66,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 		$dir = $this->dataDir.'/lock#'.$key;
 
 		clearstatcache();
-		return @mkdir($dir, 0777);
+		return @mkdir($dir, self::$dirPerm);
 	}
 
 	public function unlock($namespace, $key) {
@@ -99,7 +101,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 		$filename = $this->getFilename($namespace, $key);
 		$level    = error_reporting(0);
 
-		touch($filename, 0777);
+		touch($filename, self::$filePerm);
 		file_put_contents($filename, serialize($value), LOCK_EX);
 
 		error_reporting($level);
@@ -351,7 +353,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	 */
 	private static function makeDir($dir) {
 		if (!is_dir($dir)) {
-			if (!@mkdir($dir, 0777, true)) {
+			if (!@mkdir($dir, self::$dirPerm, true)) {
 				throw new BabelCache_Exception('Can\'t create directory in '.$dir.'.');
 			}
 
@@ -371,5 +373,23 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	 */
 	private static function cutHash($hash) {
 		return substr($hash, 0, 2);
+	}
+
+	/**
+	 * Set the permissions
+	 *
+	 * @param int $chmod  the new chmod value (like 0777)
+	 */
+	public static function setDirPermissions($chmod) {
+		self::$dirPerm = (int) $chmod;
+	}
+
+	/**
+	 * Set the permissions
+	 *
+	 * @param int $chmod  the new chmod value (like 0777)
+	 */
+	public static function setFilePermissions($chmod) {
+		self::$filePerm = (int) $chmod;
 	}
 }

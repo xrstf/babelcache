@@ -1,3 +1,8 @@
+v1.2.2
+======
+
+* allow setting file and directory permissions in filesystem cache
+
 v1.2.1
 ======
 
