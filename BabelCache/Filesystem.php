@@ -117,6 +117,12 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 
 		// lock the file
 		$handle = fopen($file, 'r');
+
+		// old filestats?
+		if (!$handle) {
+			return $default;
+		}
+
 		flock($handle, LOCK_SH);
 
 		// read it
