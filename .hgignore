@@ -1,0 +1,3 @@
+syntax:glob
+docs/_build/*
+docs/coco/*.html
