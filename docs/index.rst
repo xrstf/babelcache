@@ -90,5 +90,5 @@ See the :doc:`example file <example>` for a more complete demonstration.
 API documentation
 -----------------
 
-Some automatically `generated documentation <docs/index.html>` for the PHP code
+Some automatically `generated documentation <coco/index.html>`_ for the PHP code
 is available.
