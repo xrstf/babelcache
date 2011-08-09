@@ -1,8 +1,8 @@
 PROJECT_NAME     = "BabelCache"
 PROJECT_NUMBER   = "Version X"
 OUTPUT_DIRECTORY = ./doxygen/
-INPUT            = ../
-EXCLUDE          = ../tests ../docs
+INPUT            = ../../
+EXCLUDE          = ../../tests ../../docs
 
 # Einstellungen, die vom Standard abweichen oder wichtig sind
 
@@ -16,7 +16,7 @@ COLLABORATION_GRAPH    = NO
 DIRECTORY_GRAPH        = NO
 DISTRIBUTE_GROUP_DOC   = YES
 DOCSET_BUNDLE_ID       = de.webvariants
-DOCSET_FEEDNAME        = "webvariants Documentation Central"
+DOCSET_FEEDNAME        = "webvariants"
 ENABLE_PREPROCESSING   = NO
 EXTRACT_ALL            = YES
 EXTRACT_PRIVATE        = YES
