@@ -39,6 +39,18 @@ simple SPL autoloader.
 
 See the :doc:`faq` for some answers to common problems.
 
+Download
+--------
+
+The current version can be downloaded from `Bitbucket`_. That's also where the
+development happens. Bitbucket automatically generates downloadable ZIP
+archives, so don't look for explicitely created downloads.
+
+The latest version is always the `tip revision`_.
+
+.. _Bitbucket:    https://bitbucket.org/webvariants/babelcache/
+.. _tip revision: https://bitbucket.org/webvariants/babelcache/get/tip.zip
+
 Namespacing
 -----------
 
