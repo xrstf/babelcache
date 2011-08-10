@@ -74,7 +74,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 		$dir = $this->dataDir.'/lock#'.$key;
 
 		clearstatcache();
-		return is_dir($dir) ? @rmdir($dir) : true;
+		return is_dir($dir) ? rmdir($dir) : true;
 	}
 
 	public function waitForObject($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 50) {
@@ -116,10 +116,11 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 		}
 
 		// lock the file
-		$handle = fopen($file, 'r');
+		$handle = @fopen($file, 'r');
 
 		// old filestats?
 		if (!$handle) {
+			clearstatcache();
 			return $default;
 		}
 
