@@ -1,3 +1,8 @@
+v1.2.5
+======
+
+* suppress error with outdated stat cache when getting a value
+
 v1.2.4
 ======
 
