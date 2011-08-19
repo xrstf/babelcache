@@ -1,3 +1,8 @@
+v1.2.6
+======
+
+* check if filesystem cache can aquire the lock when reading cache data
+
 v1.2.5
 ======
 
