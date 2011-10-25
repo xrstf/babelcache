@@ -53,7 +53,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	 * @param string $dataDirectory  the full path to the cache directory (chmod 777)
 	 */
 	public function __construct($dataDirectory) {
-		self::makeDir($dataDirectory);
+		$this->makeDir($dataDirectory);
 		$this->dataDir = $dataDirectory;
 	}
 
@@ -153,7 +153,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 
 		// handle our own cache
 
-		$namespace = self::getDirFromNamespace($namespace);
+		$namespace = $this->getDirFromNamespace($namespace);
 		$root      = $this->dataDir.'/'.$namespace;
 
 		// Wenn wir rekursiv löschen, können wir wirklich alles in diesem Verzeichnis
@@ -186,13 +186,13 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	 * @param  string $hash       the hash of the element that will be stored
 	 * @return boolean            always true
 	 */
-	private static function createNamespaceDir($namespace, $root, $hash) {
+	protected function createNamespaceDir($namespace, $root, $hash) {
 		if (!empty($namespace)) {
 			$thisPart = array_shift($namespace);
 			$dir      = $root.'/'.$thisPart;
 
-			self::makeDir($dir);
-			return self::createNamespaceDir($namespace, $dir, $hash);
+			$this->makeDir($dir);
+			return $this->createNamespaceDir($namespace, $dir, $hash);
 		}
 		else {
 			// Zuletzt erzeugen wir das Verteilungsverzeichnis für die Cache-Daten,
@@ -204,15 +204,15 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 			// der Länge 2 haben.
 
 			$dir = $root.'/data'.self::$safeDirChar;
-			self::makeDir($dir);
+			$this->makeDir($dir);
 
 			// Jetzt kommen die kleinen Verzeichnisse...
 
-			$hash = self::cutHash($hash);
+			$hash = $this->cutHash($hash);
 
 			if (strlen($hash) > 0) {
 				$dir = $dir.'/'.$hash;
-				self::makeDir($dir);
+				$this->makeDir($dir);
 			}
 
 			return true;
@@ -226,8 +226,8 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	 * @param  string $root       the root cach directory
 	 * @return boolean            true if the directory exists, else false
 	 */
-	private static function dataDirExists($namespace, $root) {
-		$namespace = self::getDirFromNamespace($namespace);
+	protected function dataDirExists($namespace, $root) {
+		$namespace = $this->getDirFromNamespace($namespace);
 		$dataDir   = 'data'.self::$safeDirChar;
 		$dirname   = $root.'/'.$namespace.'/'.$dataDir;
 
@@ -245,61 +245,29 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	 * @param  string $key        element key
 	 * @return string             the full path
 	 */
-	private function getFilename($namespace, $key) {
+	protected function getFilename($namespace, $key) {
 		$namespace = $this->checkString($namespace);
 		$key       = $this->checkString($key);
 		$dir       = $this->dataDir;
 		$hash      = md5($key);
 
-		if (!self::dataDirExists($namespace, $dir)) {
-			self::createNamespaceDir(explode('.', $namespace), $dir, $hash);
+		if (!$this->dataDirExists($namespace, $dir)) {
+			$this->createNamespaceDir(explode('.', $namespace), $dir, $hash);
 		}
 
 		// Finalen Dateipfad erstellen
 
-		$namespace = self::getDirFromNamespace($namespace);
+		$namespace = $this->getDirFromNamespace($namespace);
 		$dataDir   = 'data'.self::$safeDirChar;
-		$hashPart  = self::cutHash($hash);
+		$hashPart  = $this->cutHash($hash);
 		$dir       = $dir.'/'.$namespace.'/'.$dataDir;
 
 		if (strlen($hashPart) > 0) {
 			$dir .= '/'.$hashPart;
-			self::makeDir($dir);
+			$this->makeDir($dir);
 		}
 
 		return $dir.'/'.$hash;
-	}
-
-	/**
-	 * Get a list of all known sub-namespaces
-	 *
-	 * This will scan a namesace directory for every child directory (except
-	 * 'data~' of course) and return the basenames of all directories (sorted).
-	 *
-	 * @param  string $namespace  the target namespace
-	 * @return array              a sorted list ob sub-directories
-	 */
-	private static function getSubNamespaces($namespace) {
-		$this->checkString($namespace);
-
-		$namespace = self::getDirFromNamespace($namespace);
-		$dir       = $this->dataDir.'/'.$namespace;
-		$dataDir   = 'data'.self::$safeDirChar;
-
-		// Verzeichnisse ermitteln
-
-		$namespaces = is_dir($namespaces) ? scandir($namespaces) : array(); // Warning vermeiden (scandir gäbe auch false zurück)
-
-		// data~-Verzeichnis entfernen, falls vorhanden
-
-		$dataDirIndex = array_search($dataDir, $namespaces);
-
-		if ($dataDirIndx !== false) {
-			unset($namespaces[$dataDirIndex]);
-		}
-
-		sort($namespaces);
-		return array_values($namespaces);
 	}
 
 	/**
@@ -311,7 +279,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	 * @param  string $root  the root from where to start
 	 * @return boolean       true if everything was deleted, else false
 	 */
-	private static function deleteRecursive($root) {
+	protected function deleteRecursive($root) {
 		if (!is_dir($root)) {
 			return true;
 		}
@@ -349,7 +317,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	 * @param  string $namespace  the namespace
 	 * @return string             the namespace with replaced dots
 	 */
-	private static function getDirFromNamespace($namespace) {
+	protected function getDirFromNamespace($namespace) {
 		return str_replace('.', '/', $namespace);
 	}
 
@@ -362,7 +330,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	 * @throws BabelCache_Exception  if the directory could not be created
 	 * @param  string $dir           the directory to create
 	 */
-	private static function makeDir($dir) {
+	protected function makeDir($dir) {
 		if (!is_dir($dir)) {
 			if (!@mkdir($dir, self::$dirPerm, true)) {
 				throw new BabelCache_Exception('Can\'t create directory in '.$dir.'.');
@@ -382,7 +350,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	 * @param  string $hash  the element's hash
 	 * @return string        the first 2 characters of that hash
 	 */
-	private static function cutHash($hash) {
+	protected function cutHash($hash) {
 		return substr($hash, 0, 2);
 	}
 

@@ -98,6 +98,7 @@ abstract class BabelCache_Factory {
 				break;
 
 			case 'BabelCache_Filesystem':
+			case 'BabelCache_Filesystem_Plain':
 
 				$path  = $this->getCacheDirectory();
 				$cache = new $className($path);
