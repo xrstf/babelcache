@@ -98,7 +98,7 @@ SQL;
 
 		// insert lock
 		$stmt = $this->getStatement('insert');
-		$stmt->execute(array('namespace' => $namespace, 'hash' => $lock, 'payload' => ''));
+		$stmt->execute(array('namespace' => $namespace, 'hash' => 'lock:'.sha1($key), 'payload' => ''));
 		$stmt->closeCursor();
 
 		// finished
@@ -126,7 +126,7 @@ SQL;
 		return !empty($row);
 	}
 
-	public function waitForObject($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 300) {
+	public function waitForObject($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 500) {
 		$start          = microtime(true);
 		$waited         = 0;
 		$checkInterval *= 1000;
