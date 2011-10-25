@@ -40,9 +40,9 @@
 class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	protected $dataDir = '';    ///< string  absolute path to the cache directory
 
-	private static $safeDirChar = '~';  ///< string  special character that is used for the data directory
-	private static $dirPerm     = 0777; ///< int     permissions to use for created directories
-	private static $filePerm    = 0664; ///< int     permissions to use for created files
+	protected static $safeDirChar = '~';  ///< string  special character that is used for the data directory
+	protected static $dirPerm     = 0777; ///< int     permissions to use for created directories
+	protected static $filePerm    = 0664; ///< int     permissions to use for created files
 
 	/**
 	 * Constructor

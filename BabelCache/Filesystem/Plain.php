@@ -26,7 +26,7 @@ class BabelCache_Filesystem_Plain extends BabelCache_Filesystem {
 		$dir = $this->dataDir.'/lock_'.sha1($key);
 
 		clearstatcache();
-		return @mkdir($dir, self::$dirPerm);
+		return @mkdir($dir, parent::$dirPerm);
 	}
 
 	public function unlock($namespace, $key) {
@@ -123,8 +123,8 @@ class BabelCache_Filesystem_Plain extends BabelCache_Filesystem {
 
 		try {
 			$iterator = new DirectoryIterator($root);
-			$status      = true;
-			$level       = error_reporting(0);
+			$status   = true;
+			$level    = error_reporting(0);
 
 			foreach ($iterator as $file) {
 				if (!$file->isDot() && $file->isFile()) {
