@@ -1,3 +1,5 @@
 syntax:glob
 docs/_build/*
 docs/coco/*.html
+syntax: glob
+tests/test.sqlite

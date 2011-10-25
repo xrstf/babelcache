@@ -103,6 +103,12 @@ abstract class BabelCache_Factory {
 				$cache = new $className($path);
 				break;
 
+			case 'BabelCache_SQLite':
+
+				$conn  = $this->getSQLiteConnection();
+				$cache = new $className($conn);
+				break;
+
 			default:
 				$cache = new $className();
 		}
@@ -154,4 +160,11 @@ abstract class BabelCache_Factory {
 	 * @return string  the absolute path to the cache directory
 	 */
 	abstract protected function getCacheDirectory();
+
+	/**
+	 * Returns the sqlite connection
+	 *
+	 * @return PDO  the established connection
+	 */
+	abstract protected function getSQLiteConnection();
 }

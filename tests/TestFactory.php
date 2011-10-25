@@ -15,4 +15,11 @@ class TestFactory extends BabelCache_Factory {
 
 		return $dir;
 	}
+
+	protected function getSQLiteConnection() {
+		$db   = dirname(__FILE__).'/test.sqlite';
+		$conn = BabelCache_SQLite::connect($db);
+
+		return $conn;
+	}
 }
