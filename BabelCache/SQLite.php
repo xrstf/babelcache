@@ -19,9 +19,8 @@
  * @author Christoph Mewes
  */
 class BabelCache_SQLite extends BabelCache implements BabelCache_Interface {
-	protected $pdo    = null;    ///< PDO      database connection
-	protected $stmts  = array(); ///< array    list of prepared statements
-	protected $isLock = false;   ///< boolean  indicator whether a row represents a lock
+	protected $pdo   = null;    ///< PDO    database connection
+	protected $stmts = array(); ///< array  list of prepared statements
 
 	/**
 	 * Constructor
