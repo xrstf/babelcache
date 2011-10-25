@@ -34,14 +34,7 @@ class BabelCache_SQLite extends BabelCache implements BabelCache_Interface {
 		$tables = $stmt->fetchAll();
 
 		if (empty($tables)) {
-			$sql = <<<SQL
-CREATE TABLE "babelcache" (
-  "namespace" VARCHAR(255),
-  "keyhash"   VARCHAR(40),
-  "payload"   BLOB,
-  PRIMARY KEY ("namespace", "keyhash")
-)
-SQL;
+			$sql = 'CREATE TABLE "babelcache" ("namespace" VARCHAR(255), "keyhash" VARCHAR(40), "payload" BLOB, PRIMARY KEY ("namespace", "keyhash"))';
 			$this->pdo->exec($sql);
 		}
 

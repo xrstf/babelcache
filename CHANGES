@@ -1,3 +1,9 @@
+v1.2.7-beta
+===========
+
+* added new experimental SQLite caching
+* added new, simplified filesystem cache
+
 v1.2.6
 ======
 
