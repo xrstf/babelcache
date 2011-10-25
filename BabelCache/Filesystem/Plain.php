@@ -121,25 +121,18 @@ class BabelCache_Filesystem_Plain extends BabelCache_Filesystem {
 	protected function deleteFiles($root) {
 		if (!is_dir($root)) return true;
 
-		try {
-			$iterator = new DirectoryIterator($root);
-			$status   = true;
-			$level    = error_reporting(0);
+		$files  = glob($root.'/*', GLOB_NOSORT);
+		$status = true;
+		$level  = error_reporting(0);
 
-			foreach ($iterator as $file) {
-				if (!$file->isDot() && $file->isFile()) {
-					$status &= unlink($file);
-				}
-			}
-
-			$iterator = null;
-
-			clearstatcache();
-			error_reporting($level);
-			return $status;
+		foreach ($files as $file) {
+			if (is_dir($root.'/'.$file)) continue;
+			$status &= unlink($root.'/'.$file);
 		}
-		catch (UnexpectedValueException $e) {
-			return false;
-		}
+
+		clearstatcache();
+		error_reporting($level);
+
+		return $status;
 	}
 }
