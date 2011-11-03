@@ -1,3 +1,10 @@
+v1.2.8
+======
+
+* fixed generateKey() for non-empty arrays
+* fixed non-recursive flush in plain filesystem cache
+* SQLite requires no transaction when locking a key
+
 v1.2.7-beta
 ===========
 
