@@ -59,3 +59,18 @@ wish to cache it permanently.
 
 We have yet to find a real usecase for it. So don't worry when it's useless to
 you -- that's normal. ;-)
+
+Should I use the plain or normal filesystem cache?
+--------------------------------------------------
+
+We have found the normal filesystem cache to be overblown in nearly all cases.
+It creates sub-directories with the first two characters of the item hash, but
+for small systems this creates **a lot** of directories holding only one or two
+files.
+
+The plain filesystem cache, added in version 1.2.7, avoids this overhead and
+stores the datafiles directly inside the namspace directory. It's the better
+option for most websites, because really large pages will use memcached anyway.
+
+So try to avoid the normal cache and always use the plain one. It will suffice.
+If it's still to slow, you might want to take a look at the SQLite cache.

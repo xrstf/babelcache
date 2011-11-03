@@ -16,7 +16,11 @@ different caching systems, including:
 * `Memcached`_ (both `php_memcache`_ and `php_memcached`_)
 * `XCache`_
 * `Zend Server`_
+* `SQLite`_
 * File system (should only be used when no shared memory cache is available)
+
+  * plain storage (datafiles reside directly inside the namespace directories)
+  * split storage (datafiles are distributed across many small subdirs)
 
 .. _APC:           http://pecl.php.net/package/APC
 .. _XCache:        http://xcache.lighttpd.net/
@@ -25,6 +29,7 @@ different caching systems, including:
 .. _Memcached:     http://memcached.org/
 .. _php_memcache:  http://php.net/manual/en/book.memcache.php
 .. _php_memcached: http://php.net/manual/en/book.memcached.php
+.. _SQLite:        http://www.sqlite.org/
 
 This enables you to build an application without knowing what caching system
 will be available on the target machine. You only use the generic interface and
