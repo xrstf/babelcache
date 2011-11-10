@@ -25,7 +25,7 @@ class BabelCache_SQLite extends BabelCache implements BabelCache_Interface {
 	/**
 	 * Constructor
 	 *
-	 * @param string $connection  the already established connection
+	 * @param PDO $connection  the already established connection
 	 */
 	public function __construct(PDO $connection) {
 		$this->pdo = $connection;
@@ -45,7 +45,7 @@ class BabelCache_SQLite extends BabelCache implements BabelCache_Interface {
 	 * Connect to a database
 	 *
 	 * @param  string $databaseFile  full path to the database file
-	 * @return PDO
+	 * @return PDO                   the database connection instance
 	 */
 	public static function connect($databaseFile) {
 		return new PDO('sqlite:'.$databaseFile, null, null, array(
