@@ -1,3 +1,9 @@
+v1.2.9
+======
+
+* fixed getting objects after waiting for their locks to
+  get released
+
 v1.2.8
 ======
 
