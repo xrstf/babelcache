@@ -239,17 +239,17 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	 * @return mixed                  the value from the cache if the lock was released, else $default
 	 */
 	public function waitForObject($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 50) {
-		$key            = $this->getFullKey($namespace, $key);
+		$fullKey        = $this->getFullKey($namespace, $key);
 		$start          = microtime(true);
 		$waited         = 0;
 		$checkInterval *= 1000;
 
-		while ($waited < $maxWaitTime && $this->hasLock($key)) {
+		while ($waited < $maxWaitTime && $this->hasLock($fullKey)) {
 			usleep($checkInterval);
 			$waited = microtime(true) - $start;
 		}
 
-		if (!$this->hasLock($key)) {
+		if (!$this->hasLock($fullKey)) {
 			return $this->get($namespace, $key, $default);
 		}
 
