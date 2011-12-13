@@ -126,8 +126,8 @@ class BabelCache_Filesystem_Plain extends BabelCache_Filesystem {
 		$level  = error_reporting(0);
 
 		foreach ($files as $file) {
-			if (is_dir($root.'/'.$file)) continue;
-			$status &= unlink($root.'/'.$file);
+			if (is_dir($file)) continue;
+			$status &= unlink($file);
 		}
 
 		clearstatcache();
