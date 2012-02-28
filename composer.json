@@ -1,0 +1,17 @@
+{
+    "name": "webvariants/babelcache",
+    "type": "library",
+    "description": "Generic caching library with namespace support",
+    "keywords": ["cache","caching","apc","xcache","eaccelerator","memcache", "memcached","zendserver"],
+    "homepage": "http://docs.webvariants.de/babelcache/latest/",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Christoph Mewes",
+            "email": "christoph@webvariants.de"
+        }
+    ],
+    "require": {
+        "php": ">=5.1.0"
+    }
+}
