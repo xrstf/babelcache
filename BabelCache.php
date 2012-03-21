@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2011, webvariants GbR, http://www.webvariants.de
+ * Copyright (c) 2012, webvariants GbR, http://www.webvariants.de
  *
  * This file is released under the terms of the MIT license. You can find the
  * complete text in the attached LICENSE file or online at:
@@ -97,17 +97,21 @@ abstract class BabelCache {
 	 *
 	 * @throws BabelCache_Exception  if the string contains illegal characters
 	 * @param  string $str           the string to check
+	 * @param  string $name          the 'variable name' of the string
 	 * @return string                the unaltered string
 	 */
-	protected function checkString($str) {
+	protected function checkString($str, $name) {
+		if ($str === null || strlen($str) === 0) {
+			throw new BabelCache_Exception('No '.$name.' given.');
+		}
+
 		if (
-			strlen($str) === 0 ||
 			$str[0] === '.' ||
 			$str[strlen($str)-1] === '.' ||
 			strpos($str, '..') !== false ||
 			!preg_match('#^[a-z0-9_.\[\]%\#-]+$#i', $str)
 		) {
-			throw new BabelCache_Exception('A malformed string was given.');
+			throw new BabelCache_Exception('A malformed '.$name.' was given.');
 		}
 
 		return $str;
@@ -128,10 +132,10 @@ abstract class BabelCache {
 	 * @return string                'namespace$key' or 'namespace'
 	 */
 	protected function getFullKeyHelper($namespace, $key) {
-		$fullKey = $this->checkString($namespace);
+		$fullKey = $this->checkString($namespace, 'namespace');
 
 		if (strlen($key) > 0) {
-			$fullKey .= '$'.$this->checkString($key);
+			$fullKey .= '$'.$this->checkString($key, 'key');
 		}
 
 		return $fullKey;

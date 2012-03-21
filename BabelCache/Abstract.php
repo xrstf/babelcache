@@ -150,7 +150,7 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	 * @return boolean             true if the flush was successful, else false
 	 */
 	public function flush($namespace, $recursive = false) {
-		$this->checkString($namespace);
+		$this->checkString($namespace, 'namespace');
 
 		$fullKey = $namespace.'$';
 		$path    = $this->createVersionPath($fullKey, false, true);

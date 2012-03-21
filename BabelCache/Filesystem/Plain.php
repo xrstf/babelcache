@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2011, webvariants GbR, http://www.webvariants.de
+ * Copyright (c) 2012, webvariants GbR, http://www.webvariants.de
  *
  * This file is released under the terms of the MIT license. You can find the
  * complete text in the attached LICENSE file or online at:
@@ -15,10 +15,11 @@
  * cache is available. It only requires write permissions to a specific
  * directory.
  *
- * Namespaces will be mapped to directories and sub-directories.
+ * In constrast to the full-blown filesystem cache, this one will store all data
+ * files directly inside the namespace directories.
  *
  * @author Christoph Mewes
- * @see    BabelCache_Memory
+ * @see    BabelCache_Filesystem
  */
 class BabelCache_Filesystem_Plain extends BabelCache_Filesystem {
 	public function lock($namespace, $key, $duration = 1) {

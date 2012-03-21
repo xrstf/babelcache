@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2011, webvariants GbR, http://www.webvariants.de
+ * Copyright (c) 2012, webvariants GbR, http://www.webvariants.de
  *
  * This file is released under the terms of the MIT license. You can find the
  * complete text in the attached LICENSE file or online at:
@@ -10,10 +10,6 @@
 
 /**
  * Filesystem Cache
- *
- * This is the fallback caching strategy, that should be used if no in-memory
- * cache is available. It only requires write permissions to a specific
- * directory.
  *
  * Namespaces will be mapped to directories and sub-directories. Each namespace
  * folder will then have a data~ directory in which the cache files will be
@@ -31,11 +27,13 @@
  * mess up your cache directories. Returning an empty string disables the
  * distribution.
  *
- * For faster access time, all read values will be stored in an internal memory
- * cache.
+ * In most cases, this strategy to spread the data files is not necessary.
+ * Before using it, consider using %BabelCache_Filesystem_Plain instead, which
+ * should suffice in 99,9% of all cases (if you really need to store large
+ * amount of data, consider using Memcached instead).
  *
  * @author Christoph Mewes
- * @see    BabelCache_Memory
+ * @see    BabelCache_Filesystem_Plain
  */
 class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	protected $dataDir = '';    ///< string  absolute path to the cache directory

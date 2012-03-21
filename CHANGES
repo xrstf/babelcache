@@ -1,3 +1,11 @@
+v1.2.11
+=======
+
+* generate more helpful error messages (when no namespace or
+  key is given at all)
+* updated license for 2012
+* better documentation for filesystem caches
+
 v1.2.10
 =======
 
