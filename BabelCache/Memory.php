@@ -48,7 +48,7 @@ class BabelCache_Memory extends BabelCache implements BabelCache_Interface {
 
 	public function exists($namespace, $key) {
 		// in_array, weil isset(null) = false ist.
-		return isset($this->data[$namespace]) && (isset($this->data[$namespace][$key]) || in_array($key, array_keys($this->data[$namespace])));
+		return isset($this->data[$namespace]) && array_key_exists($key, $this->data[$namespace]);
 	}
 
 	public function get($namespace, $key, $default = null) {
