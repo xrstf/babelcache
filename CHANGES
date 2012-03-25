@@ -1,3 +1,8 @@
+v1.2.12
+=======
+
+* fixed notice in memory cache by removing redundant code
+
 v1.2.11
 =======
 
