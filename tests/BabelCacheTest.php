@@ -11,7 +11,7 @@
 class BabelCacheTest extends BabelCache {
 	public function testString($str) {
 		try {
-			$this->checkString($str);
+			$this->checkString($str, 'str');
 			return true;
 		}
 		catch (Exception $e) {

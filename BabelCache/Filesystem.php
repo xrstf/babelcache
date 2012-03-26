@@ -147,7 +147,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	}
 
 	public function flush($namespace, $recursive = false) {
-		$this->checkString($namespace);
+		$this->checkString($namespace, 'namespace');
 
 		// handle our own cache
 
@@ -244,8 +244,8 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	 * @return string             the full path
 	 */
 	protected function getFilename($namespace, $key) {
-		$namespace = $this->checkString($namespace);
-		$key       = $this->checkString($key);
+		$namespace = $this->checkString($namespace, 'namespace');
+		$key       = $this->checkString($key, 'key');
 		$dir       = $this->dataDir;
 		$hash      = md5($key);
 

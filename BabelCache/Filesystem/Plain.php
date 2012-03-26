@@ -59,7 +59,7 @@ class BabelCache_Filesystem_Plain extends BabelCache_Filesystem {
 	}
 
 	public function flush($namespace, $recursive = false) {
-		$this->checkString($namespace);
+		$this->checkString($namespace, 'namespace');
 
 		$namespace = $this->getDirFromNamespace($namespace);
 		$root      = $this->dataDir.'/'.$namespace;
@@ -104,8 +104,8 @@ class BabelCache_Filesystem_Plain extends BabelCache_Filesystem {
 	 * @return string             the full path
 	 */
 	protected function getFilename($namespace, $key) {
-		$namespace = $this->checkString($namespace);
-		$key       = $this->checkString($key);
+		$namespace = $this->checkString($namespace, 'namespace');
+		$key       = $this->checkString($key, 'key');
 		$dir       = $this->dataDir;
 		$hash      = md5($key);
 		$part      = $this->getDirFromNamespace($namespace);

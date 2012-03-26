@@ -169,7 +169,7 @@ class BabelCache_SQLite extends BabelCache implements BabelCache_Interface {
 	}
 
 	public function flush($namespace, $recursive = false) {
-		$this->checkString($namespace);
+		$this->checkString($namespace, 'namespace');
 
 		$stmt = $this->getStatement($recursive ? 'flushr' : 'flush');
 		$stmt->bindValue('namespace', $namespace);
