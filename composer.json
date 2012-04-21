@@ -16,10 +16,5 @@
     },
     "autoload": {
         "psr-0": {"BabelCache": "."}
-    },
-    "source": {
-        "url": "http://bitbucket.org/webvariants/babelcache",
-        "type": "hg",
-        "reference": "dev-default"
     }
 }
