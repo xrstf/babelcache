@@ -37,6 +37,26 @@ class BabelCache_Memcache extends BabelCache_Abstract {
 		}
 	}
 
+	public function getMemcached() {
+		return $this->memcached;
+	}
+
+	public function addServer($host, $port = 11211, $weight = 0) {
+		return $this->memcached->addServer($host, $port, true, $weight);
+	}
+
+	public function addServerEx($host, $port = 11211, $weight = 0, $persistent = true, $timeout = 1, $retryInterval = 15, $status = true, $failureCallback = null) {
+		return $this->memcached->addServer($host, $port, $persistent, $weight, $timeout, $retryInterval, $status, $failureCallback);
+	}
+
+	public function getVersion() {
+		return $this->memcached->getVersion();
+	}
+
+	public function getStats() {
+		return $this->memcached->getStats();
+	}
+
 	public function getMaxKeyLength() {
 		return 200; // unbekannt -> Schätzwert
 	}
