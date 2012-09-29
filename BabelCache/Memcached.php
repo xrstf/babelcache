@@ -18,7 +18,7 @@
  * @author Christoph Mewes
  * @see    http://www.php.net/manual/de/book.memcached.php
  */
-class BabelCache_Memcached extends BabelCache_Memcache implements BabelCache_IMemcached {
+class BabelCache_Memcached extends BabelCache_Memcache {
 	/**
 	 * Checks whether a caching system is avilable
 	 *
