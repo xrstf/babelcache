@@ -32,6 +32,5 @@
         "branch-alias": {
             "dev-default": "1.x-dev"
         }
-    },
-    "version": "1.2.13"
+    }
 }
