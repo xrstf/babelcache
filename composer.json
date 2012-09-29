@@ -16,5 +16,10 @@
     },
     "autoload": {
         "psr-0": {"BabelCache": "."}
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-default": "1.x-dev"
+        }
     }
 }
