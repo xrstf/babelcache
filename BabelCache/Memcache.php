@@ -48,27 +48,10 @@ class BabelCache_Memcache extends BabelCache_Abstract {
 	/**
 	 * Checks whether a caching system is avilable
 	 *
-	 * This method tries to connect with memcached and set a value.
-	 *
-	 * @param  string $host  the host
-	 * @param  int    $port  the port
-	 * @return boolean       true if it worked, else false
+	 * @return boolean  true if php_memcache is available, else false
 	 */
-	public static function isAvailable($host = 'localhost', $port = 11211) {
-		if (!class_exists('Memcache')) {
-			return false;
-		}
-
-		$testCache = new Memcache();
-
-		if (!$testCache->connect($host, $port)) {
-			return false;
-		}
-
-		$available = $testCache->set('test', 1, 0, 1);
-		$testCache->close();
-
-		return $available;
+	public static function isAvailable() {
+		return class_exists('Memcache');
 	}
 
 	protected function _getRaw($key) {

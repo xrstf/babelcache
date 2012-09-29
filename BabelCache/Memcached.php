@@ -19,21 +19,13 @@
  * @see    http://www.php.net/manual/de/book.memcached.php
  */
 class BabelCache_Memcached extends BabelCache_Memcache {
-	public static function isAvailable($host = 'localhost', $port = 11211) {
-		if (!class_exists('Memcached')) {
-			return false;
-		}
-
-		$testCache = new Memcached();
-
-		if (!$testCache->addServer($host, $port)) {
-			return false;
-		}
-
-		$available = $testCache->set('test', 1, 1);
-		$testCache = null;
-
-		return $available;
+	/**
+	 * Checks whether a caching system is avilable
+	 *
+	 * @return boolean  true if php_memcached is available, else false
+	 */
+	public static function isAvailable() {
+		return class_exists('Memcached');
 	}
 
 	public function __construct($host = 'localhost', $port = 11211) {
