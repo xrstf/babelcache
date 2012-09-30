@@ -48,7 +48,7 @@ abstract class BabelCache {
 
 				case 'string':
 
-					if (preg_match('#[^a-z0-9-_]#i', $var)) {
+					if (preg_match('#[^a-z0-9-_]#', $var)) {
 						// Das Prozentzeichen kennzeichnet, dass es sich bei "2147483647"
 						// um einen Hashwert (und nicht eine einfache Zahl) handelt.
 						$var = '%'.substr(md5($var), 0, 8);
@@ -101,7 +101,11 @@ abstract class BabelCache {
 	 * @return string                the unaltered string
 	 */
 	protected function checkString($str, $name) {
-		if ($str === null || strlen($str) === 0) {
+		if (!is_string($str)) {
+			throw new BabelCache_Exception('Given '.$name.' parameter is not a string, but a '.gettype($str).'.');
+		}
+
+		if (strlen($str) === 0) {
 			throw new BabelCache_Exception('No '.$name.' given.');
 		}
 
