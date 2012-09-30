@@ -49,7 +49,7 @@ class BabelCache_Memcache extends BabelCache_Abstract {
 		return $this->memcached->addServer($host, $port, $persistent, $weight, $timeout, $retryInterval, $status, $failureCallback);
 	}
 
-	public function getVersion() {
+	public function getMemcachedVersion() {
 		return $this->memcached->getVersion();
 	}
 

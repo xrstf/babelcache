@@ -36,7 +36,7 @@ class BabelCache_Memcached extends BabelCache_Memcache {
 		return $this->memcached->addServer($host, $port, $weight);
 	}
 
-	public function getVersion() {
+	public function getMemcachedVersion() {
 		$result = $this->memcached->getVersion();
 		return empty($result) ? false : reset($result);
 	}
