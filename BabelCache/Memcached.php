@@ -15,8 +15,9 @@
  * memcache (without d!) extension, for which you have to use
  * BabelCache_Memcache.
  *
- * @author Christoph Mewes
- * @see    http://www.php.net/manual/de/book.memcached.php
+ * @author  Christoph Mewes
+ * @see     http://www.php.net/manual/de/book.memcached.php
+ * @package BabelCache.Storage
  */
 class BabelCache_Memcached extends BabelCache_Memcache {
 	/**

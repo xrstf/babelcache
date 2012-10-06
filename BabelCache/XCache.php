@@ -14,10 +14,9 @@
  * This class wraps the XCache extension, which provides both opcode and vardata
  * caching.
  *
- * Using XCache is my personal recommendation, as it's fast and reliable.
- *
- * @author Christoph Mewes
- * @see    http://xcache.lighttpd.net/
+ * @author  Christoph Mewes
+ * @see     http://xcache.lighttpd.net/
+ * @package BabelCache.Storage
  */
 class BabelCache_XCache extends BabelCache_Abstract {
 	public function getMaxKeyLength() {

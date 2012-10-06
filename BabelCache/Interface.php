@@ -14,7 +14,8 @@
  * This interface is used for all provided caches and provides a common set of
  * methods that all caches support. It's kind of the least common denominator.
  *
- * @author Christoph Mewes
+ * @author  Christoph Mewes
+ * @package BabelCache.Storage
  */
 interface BabelCache_Interface {
 	/**
@@ -34,10 +35,10 @@ interface BabelCache_Interface {
 	 * This method will put a value into the cache. If it already exists, it
 	 * will be overwritten.
 	 *
-	 * @param  string $namespace     the namespace to use
-	 * @param  string $key           the object key
-	 * @param  mixed  $value         the value to store
-	 * @return mixed                 the set value
+	 * @param  string $namespace  the namespace to use
+	 * @param  string $key        the object key
+	 * @param  mixed  $value      the value to store
+	 * @return mixed              the set value
 	 */
 	public function set($namespace, $key, $value);
 

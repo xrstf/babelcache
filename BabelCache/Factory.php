@@ -17,7 +17,8 @@
  * When caching is globally disabled, the factory will always return the
  * blackhole cache.
  *
- * @author Christoph Mewes
+ * @author  Christoph Mewes
+ * @package BabelCache
  */
 abstract class BabelCache_Factory {
 	private $instances     = array();  ///< array    list of caching instances

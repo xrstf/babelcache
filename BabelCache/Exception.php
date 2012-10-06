@@ -13,5 +13,7 @@
  *
  * Nothing special here, just to distinguish between BabelCache errors and
  * other errors.
+ *
+ * @package BabelCache
  */
 class BabelCache_Exception extends Exception { }

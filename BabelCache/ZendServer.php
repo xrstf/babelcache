@@ -15,8 +15,9 @@
  * Please note that this implementation does not use the native namespacing
  * features, but the generic implementation of BabelCache_Abstract.
  *
- * @author Christoph Mewes
- * @see    http://files.zend.com/help/Zend-Platform/zend_cache_api.htm
+ * @author  Christoph Mewes
+ * @see     http://files.zend.com/help/Zend-Platform/zend_cache_api.htm
+ * @package BabelCache.Storage
  */
 class BabelCache_ZendServer extends BabelCache_Abstract {
 	public function getMaxKeyLength() {

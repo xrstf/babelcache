@@ -16,7 +16,8 @@
  * implementations will only wrap the specific functions added by the PECL
  * module.
  *
- * @author Christoph Mewes
+ * @author  Christoph Mewes
+ * @package BabelCache.Storage
  */
 abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Interface {
 	protected $versions   = array(); ///< array   runtime cache of versions

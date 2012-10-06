@@ -14,8 +14,9 @@
  * This class wraps the memcache extension of PHP. Don't mix it up with the
  * memcached (with d!) extension, for which you have to use BabelCache_Memcached.
  *
- * @author Christoph Mewes
- * @see    http://www.php.net/manual/de/book.memcache.php
+ * @author  Christoph Mewes
+ * @see     http://www.php.net/manual/de/book.memcache.php
+ * @package BabelCache.Storage
  */
 class BabelCache_Memcache extends BabelCache_Abstract {
 	protected $memcached = null;  ///< Memcache  the current Memcache instance

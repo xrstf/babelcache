@@ -16,7 +16,8 @@
  * so that code relying on a cache can use the cache instance normally without
  * checking for null.
  *
- * @author Christoph Mewes
+ * @author  Christoph Mewes
+ * @package BabelCache.Storage
  */
 class BabelCache_Blackhole extends BabelCache implements BabelCache_Interface {
 	public static function isAvailable() {

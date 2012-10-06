@@ -19,8 +19,9 @@
  * Lockig does of course not make any sense, so the corresponding methods will
  * just return true.
  *
- * @author Christoph Mewes
- * @see    BabelCache_Filesystem
+ * @author  Christoph Mewes
+ * @see     BabelCache_Filesystem
+ * @package BabelCache.Storage
  */
 class BabelCache_Memory extends BabelCache implements BabelCache_Interface {
 	protected $data = array();  ///< array  contains the cached data {namespace => {key: value, key: value}}

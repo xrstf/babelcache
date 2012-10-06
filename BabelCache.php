@@ -14,7 +14,8 @@
  * This class only contains three little methods. Most of the time, you will be
  * using generateKey().
  *
- * @author Christoph Mewes
+ * @author  Christoph Mewes
+ * @package BabelCache
  */
 abstract class BabelCache {
 	/**

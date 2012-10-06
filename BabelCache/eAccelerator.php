@@ -15,8 +15,9 @@
  * in recent versions (> 0.9.5), you have to enable the vardata functions (put,
  * get, ...) via the compile switch --with-eaccelerator-shared-memory.
  *
- * @author Christoph Mewes
- * @see    http://eaccelerator.net/
+ * @author  Christoph Mewes
+ * @see     http://eaccelerator.net/
+ * @package BabelCache.Storage
  */
 class BabelCache_eAccelerator extends BabelCache_Abstract {
 	public function getMaxKeyLength() {

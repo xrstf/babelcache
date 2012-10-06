@@ -17,8 +17,9 @@
  * On APC < 3.1.4, all data will be manually serialized by this class, else
  * it will rely on APC to handle complex data.
  *
- * @author Christoph Mewes
- * @see    http://php.net/manual/de/book.apc.php
+ * @author  Christoph Mewes
+ * @see     http://php.net/manual/de/book.apc.php
+ * @package BabelCache.Storage
  */
 class BabelCache_APC extends BabelCache_Abstract {
 	private $hasExistsMethod = null; ///< boolean  true if apc_exists() exists, else false

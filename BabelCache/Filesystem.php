@@ -32,8 +32,9 @@
  * should suffice in 99,9% of all cases (if you really need to store large
  * amount of data, consider using Memcached instead).
  *
- * @author Christoph Mewes
- * @see    BabelCache_Filesystem_Plain
+ * @author  Christoph Mewes
+ * @see     BabelCache_Filesystem_Plain
+ * @package BabelCache.Storage
  */
 class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	protected $dataDir = '';    ///< string  absolute path to the cache directory

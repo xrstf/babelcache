@@ -18,8 +18,9 @@
  * In constrast to the full-blown filesystem cache, this one will store all data
  * files directly inside the namespace directories.
  *
- * @author Christoph Mewes
- * @see    BabelCache_Filesystem
+ * @author  Christoph Mewes
+ * @see     BabelCache_Filesystem
+ * @package BabelCache.Storage
  */
 class BabelCache_Filesystem_Plain extends BabelCache_Filesystem {
 	public function lock($namespace, $key, $duration = 1) {

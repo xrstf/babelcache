@@ -16,7 +16,8 @@
  * all the other stuff that makes the PHP file API so goddamn awful, use this
  * implementation.
  *
- * @author Christoph Mewes
+ * @author  Christoph Mewes
+ * @package BabelCache.Storage
  */
 class BabelCache_SQLite extends BabelCache implements BabelCache_Interface {
 	protected $pdo   = null;    ///< PDO    database connection
