@@ -102,11 +102,11 @@ abstract class BabelCache {
 	 * @return string                the unaltered string
 	 */
 	protected function checkString($str, $name) {
-		if (!is_string($str)) {
-			throw new BabelCache_Exception('Given '.$name.' parameter is not a string, but a '.gettype($str).'.');
+		if (!is_string($str) && !is_integer($str)) {
+			throw new BabelCache_Exception('Given '.$name.' parameter is not a string/int, but a '.gettype($str).'.');
 		}
 
-		if (strlen($str) === 0) {
+		if (is_string($str) && strlen($str) === 0) {
 			throw new BabelCache_Exception('No '.$name.' given.');
 		}
 

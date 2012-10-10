@@ -56,7 +56,9 @@ class BabelCacheTest extends PHPUnit_Framework_TestCase {
 		return array(
 			array('foo'),
 			array('foo.bar'),
-			array('foo.-test-.123')
+			array('foo.-test-.123'),
+			array(1),
+			array(-1),
 		);
 	}
 
@@ -73,7 +75,7 @@ class BabelCacheTest extends PHPUnit_Framework_TestCase {
 
 	public function invalidStringsProvider() {
 		return array(
-			array(1),
+			array(1.24),
 			array(false),
 			array(true),
 			array(new stdClass()),
