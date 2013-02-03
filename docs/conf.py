@@ -2,20 +2,12 @@
 
 import datetime
 
-f = open('../version')
-v = f.read()
-f.close()
-
-v = v.split('.')
-v += ['0', '0']
-[major, minor, bugfix] = v[:3]
-
 source_suffix        = '.rst'
 master_doc           = 'index'
 project              = u'BabelCache'
 copyright            = u'%s, webvariants GbR' % (datetime.date.today().year)
-version              = major
-release              = '.'.join(v[:3])
+version              = '1.2'
+release              = '1.2'
 language             = 'de'
 exclude_patterns     = ['_build']
 pygments_style       = 'default'
