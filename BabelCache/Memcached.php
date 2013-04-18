@@ -55,6 +55,16 @@ class BabelCache_Memcached extends BabelCache_Memcache {
 		}
 	}
 
+	protected function _get($key, $default) {
+		$value = $this->memcached->get($key);
+		if ($this->memcached->getResultCode() != Memcached::RES_NOTFOUND) {
+			return unserialize($value);
+		}
+		else {
+			return $default;
+		}
+	}
+
 	protected function _setRaw($key, $value, $expiration) {
 		return $this->memcached->set($key, $value, $expiration);
 	}

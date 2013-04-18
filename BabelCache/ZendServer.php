@@ -37,8 +37,14 @@ class BabelCache_ZendServer extends BabelCache_Abstract {
 		return zend_shm_cache_fetch($key);
 	}
 
-	protected function _get($key) {
-		return zend_shm_cache_fetch($key);
+	protected function _get($key, $default) {
+		$value = zend_shm_cache_fetch($key);
+		if ($value !== false) {
+			return $value;
+		}
+		else {
+			return $default;
+		}
 	}
 
 	protected function _setRaw($key, $value, $expiration) {

@@ -61,7 +61,10 @@ class BabelCache_APC extends BabelCache_Abstract {
 		return apc_fetch($key);
 	}
 
-	protected function _get($key) {
+	protected function _get($key, $default) {
+		if ($this->hasExistsMethod && apc_exists($key)) {
+			return $default;
+		}
 		$value = apc_fetch($key);
 		return $this->hasExistsMethod ? $value : unserialize($value);
 	}

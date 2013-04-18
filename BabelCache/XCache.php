@@ -36,8 +36,12 @@ class BabelCache_XCache extends BabelCache_Abstract {
 		return xcache_get($key);
 	}
 
-	protected function _get($key) {
-		return unserialize(xcache_get($key));
+	protected function _get($key, $default) {
+		if (xcache_isset($key)) {
+			return unserialize(xcache_get($key));
+		} else {
+			return $default;
+		}
 	}
 
 	protected function _setRaw($key, $value, $expiration) {

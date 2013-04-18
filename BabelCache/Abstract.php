@@ -118,7 +118,7 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 		}
 
 		$path = $this->getPrefixed($path); // prefix/foo@X.bla@Y...
-		return $this->_isset($path) ? $this->_get($path) : $default;
+		return $this->_get($path, $default);
 	}
 
 	/**
@@ -438,10 +438,11 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	/**
 	 * Wrapper method for getting a value from the cache
 	 *
-	 * @param  string $key  the element's key
-	 * @return mixed        the value or false if it wasn't found
+	 * @param  string $key      the element's key
+	 * @param  mixed  $default  a default value to return
+	 * @return mixed            the value or $default
 	 */
-	abstract protected function _get($key);
+	abstract protected function _get($key, $default);
 
 	/**
 	 * Special wrapper for scalar data
