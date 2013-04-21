@@ -39,7 +39,7 @@ class BabelCache_Memcached extends BabelCache_Memcache {
 			foreach ($servers as $server) {
 				if($server['host'] == $host and $server['port'] == $port) {
 					return true;
-                }
+				}
 			}
 		}
 		return $this->memcached->addServer($host, $port, $weight);

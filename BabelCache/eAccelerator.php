@@ -39,7 +39,7 @@ class BabelCache_eAccelerator extends BabelCache_Abstract {
 
 	protected function _get($key, $default) {
 		$value = eaccelerator_get($key);
-		if($value !== null) {
+		if ($value !== null) {
 			return unserialize($value);
 		}
 		else {
