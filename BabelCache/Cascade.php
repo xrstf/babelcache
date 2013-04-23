@@ -1,7 +1,7 @@
 <?php
 
 
-class BabelCache_Cascade extends Babelcache implements BabelCache_Interface {
+class BabelCache_Cascade implements BabelCache_Interface {
 	protected $primaryCache;
 	protected $secondaryCache;
 
