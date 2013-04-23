@@ -53,7 +53,7 @@ interface BabelCache_Interface {
 	 * @param  mixed  $default    the default value
 	 * @return mixed              the found value or $default
 	 */
-	public function get($namespace, $key, $default = null);
+	public function get($namespace, $key, $default = null, &$found = null);
 
 	/**
 	 * Removes a single value from the cache

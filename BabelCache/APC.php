@@ -61,12 +61,10 @@ class BabelCache_APC extends BabelCache_Abstract {
 		return apc_fetch($key);
 	}
 
-	protected function _get($key, $default) {
-		if ($this->hasExistsMethod && apc_exists($key)) {
-			return $default;
-		}
-		$value = apc_fetch($key);
-		return $this->hasExistsMethod ? $value : unserialize($value);
+	protected function _get($key, &$found) {
+		$value = apc_fetch($key, $found);
+
+		return $found ? $value : unserialize($value);
 	}
 
 	protected function _setRaw($key, $value, $expiration) {
@@ -75,10 +73,8 @@ class BabelCache_APC extends BabelCache_Abstract {
 	}
 
 	protected function _set($key, $value, $expiration) {
-		if (!$this->hasExistsMethod) $value = serialize($value);
-
 		$this->_delete($key); // explicit delete since APC does not allow multiple store() calls during the same request
-		return apc_store($key, $value, $expiration);
+		return apc_store($key, serialize($value), $expiration);
 	}
 
 	protected function _delete($key) {
@@ -87,7 +83,10 @@ class BabelCache_APC extends BabelCache_Abstract {
 
 	protected function _isset($key) {
 		if ($this->hasExistsMethod) return apc_exists($key);
-		return apc_fetch($key) !== false;
+
+		apc_fetch($key, $found);
+
+		return $found;
 	}
 
 	protected function _increment($key) {

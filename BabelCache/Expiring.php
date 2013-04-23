@@ -63,7 +63,9 @@ class BabelCache_Expiring {
 	 * @param  mixed  $default    the default value
 	 * @return mixed              the found value if not expired or $default
 	 */
-	public function get($namespace, $key, $default = null) {
+	public function get($namespace, $key, $default = null, &$found = null) {
+		$found = false;
+
 		if (!$this->cache->exists($namespace, $key)) {
 			return $default;
 		}
@@ -75,6 +77,7 @@ class BabelCache_Expiring {
 			return $default;
 		}
 
+		$found = true;
 		return isset($data[self::VALUE_KEY]) ? $data[self::VALUE_KEY] : $data;
 	}
 }

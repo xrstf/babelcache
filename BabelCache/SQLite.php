@@ -137,18 +137,16 @@ class BabelCache_SQLite extends BabelCache implements BabelCache_Interface {
 		return $value;
 	}
 
-	public function get($namespace, $key, $default = null) {
-		$stmt = $this->getStatement('select');
+	public function get($namespace, $key, $default = null, &$found = null) {
+		$stmt  = $this->getStatement('select');
 		$stmt->execute(array('namespace' => $namespace, 'hash' => sha1($key)));
 
 		$row = $stmt->fetch(PDO::FETCH_ASSOC);
 		$stmt->closeCursor();
 
-		if (empty($row) || empty($row['payload'])) {
-			return $default;
-		}
+		$found = !empty($row) && !empty($row['payload']);
 
-		return unserialize(base64_decode($row['payload']));
+		return $found ? unserialize(base64_decode($row['payload'])) : false;
 	}
 
 	public function exists($namespace, $key) {

@@ -107,8 +107,9 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 		return $value;
 	}
 
-	public function get($namespace, $key, $default = null) {
-		$file = $this->getFilename($namespace, $key);
+	public function get($namespace, $key, $default = null, &$found = null) {
+		$found = false;
+		$file  = $this->getFilename($namespace, $key);
 
 		if (!file_exists($file)) {
 			return $default;
@@ -135,7 +136,7 @@ class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 		// unlock it again
 		flock($handle, LOCK_UN);
 		fclose($handle);
-
+		$found = true;
 		return unserialize($data);
 	}
 

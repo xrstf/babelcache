@@ -37,14 +37,11 @@ class BabelCache_eAccelerator extends BabelCache_Abstract {
 		return eaccelerator_get($key);
 	}
 
-	protected function _get($key, $default) {
+	protected function _get($key, &$found) {
 		$value = eaccelerator_get($key);
-		if ($value !== null) {
-			return unserialize($value);
-		}
-		else {
-			return $default;
-		}
+		$found = $value !== null;
+
+		return $found ? unserialize($value) : false;
 	}
 
 	protected function _setRaw($key, $value, $expiration) {

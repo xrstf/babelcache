@@ -32,7 +32,8 @@ class BabelCache_Blackhole extends BabelCache implements BabelCache_Interface {
 		return false;
 	}
 
-	public function get($namespace, $key, $default = null) {
+	public function get($namespace, $key, $default = null, &$found = null) {
+		$found = false;
 		return $default;
 	}
 

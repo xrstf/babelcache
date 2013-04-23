@@ -109,7 +109,7 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	 * @param  mixed  $default    the default value
 	 * @return mixed              the found value or $default
 	 */
-	public function get($namespace, $key, $default = null) {
+	public function get($namespace, $key, $default = null, &$found = null) {
 		$key  = $this->getFullKey($namespace, $key);   // namespace$key
 		$path = $this->createVersionPath($key, false); // foo@X.bla@Y...
 
@@ -117,8 +117,10 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 			return $default;
 		}
 
-		$path = $this->getPrefixed($path); // prefix/foo@X.bla@Y...
-		return $this->_get($path, $default);
+		$path  = $this->getPrefixed($path); // prefix/foo@X.bla@Y...
+		$value = $this->_get($path, $found);
+
+		return $found ? $value : $default;
 	}
 
 	/**
@@ -431,18 +433,18 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 		if ($this->hasLocking() && !$hasLock) {
 			$this->_unlock($key);
 		}
-
+		\preg_match($key, $subject);
 		return $hasLock;
 	}
 
 	/**
 	 * Wrapper method for getting a value from the cache
 	 *
-	 * @param  string $key      the element's key
-	 * @param  mixed  $default  a default value to return
-	 * @return mixed            the value or $default
+	 * @param  string  $key     the element's key
+	 * @param  boolean $found   true or false whether the key was found
+	 * @return mixed            the found value or false
 	 */
-	abstract protected function _get($key, $default);
+	abstract protected function _get($key, &$found);
 
 	/**
 	 * Special wrapper for scalar data

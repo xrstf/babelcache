@@ -14,15 +14,16 @@ class BabelCache_Cascade extends Babelcache implements BabelCache_Interface {
 		$this->secondaryCache = $secondaryCache;
 	}
 
-	public function get($namespace, $key, $default = null) {
-		if ($this->primaryCache->exists($namespace, $key)) {
-			return $this->primaryCache->get($namespace, $key);
-		} else {
-			$value = $this->secondaryCache->get($namespace, $key, $default);
-			//TODO: this is questionable
-			$this->primaryCache->set($namespace, $key, $value);
-			return $value;
+	public function get($namespace, $key, $default = null, &$found = null) {
+		$value = $this->primaryCache->get($namespace, $key, $default, $found);
+		if (!$found) {
+			$value = $this->secondaryCache->get($namespace, $key, $default, $found);
+			if ($found) {
+				$this->primaryCache->set($namespace, $key, $value);
+			}
 		}
+
+		return $value;
 	}
 
 	public function set($namespace, $key, $value) {

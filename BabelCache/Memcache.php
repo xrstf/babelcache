@@ -79,14 +79,11 @@ class BabelCache_Memcache extends BabelCache_Abstract {
 		return $this->memcached->get($key);
 	}
 
-	protected function _get($key, $default) {
+	protected function _get($key, &$found) {
 		$value = $this->memcached->get($key);
-		if ($value !== false) {
-			return unserialize($value);
-		}
-		else {
-			return $default;
-		}
+		$found = $value !== false;
+		
+		return $found ? unserialize($value) : $value;
 	}
 
 	protected function _setRaw($key, $value, $expiration) {

@@ -37,7 +37,10 @@ class CacheTest extends PHPUnit_Framework_TestCase {
 		$result = $cache->set($namespace, $key, $value);
 		$this->assertSame($value, $result, 'set should return the set value');
 
-		$read = $cache->get($namespace, $key);
+		$read = $cache->get($namespace, $key, null, $found);
+
+		// test if found was set
+		$this->assertTrue($found, 'value was not found, but it should be there.');
 
 		if (is_object($value)) {
 			// we do not require the same identity
