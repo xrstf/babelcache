@@ -42,7 +42,9 @@ class BabelCache_Memcached extends BabelCache_Memcache {
 				}
 			}
 		}
-		return $this->memcached->addServer($host, $port, $weight);
+		if (!$this->memcached->addServer($host, $port, $weight)) {
+			throw new BabelCache_Exception('Could not connect to Memcached @ '.$host.':'.$port.'!');
+		}
 	}
 
 	public function getMemcachedVersion() {
@@ -55,12 +57,8 @@ class BabelCache_Memcached extends BabelCache_Memcache {
 		return empty($result) ? false : reset($result);
 	}
 
-	public function __construct($host = 'localhost', $port = 11211, $persistent_id = null) {
+	public function __construct($persistent_id = null) {
 		$this->memcached = new Memcached($persistent_id);
-
-		if (!$this->addServer($host, $port)) {
-			throw new BabelCache_Exception('Could not connect to Memcached @ '.$host.':'.$port.'!');
-		}
 	}
 
 	protected function _get($key, &$found) {

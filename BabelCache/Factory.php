@@ -77,25 +77,27 @@ abstract class BabelCache_Factory {
 		}
 
 		switch ($className) {
-			case 'BabelCache_APC':
-			case 'BabelCache_eAccelerator':
-			case 'BabelCache_XCache':
-			case 'BabelCache_ZendServer':
+			case 'BabelCache_Memcache':
 
-				$prefix = $this->getPrefix();
-				$cache  = new $className();
+				$servers = $this->getMemcacheAddresses();
+				$cache   = new $className();
 
-				$cache->setPrefix($prefix);
+				foreach ($servers as $server) {
+					$cache->addServer($server[0], $server[1], $server[2]);
+				}
+
 				break;
 
-			case 'BabelCache_Memcache':
 			case 'BabelCache_Memcached':
 
-				$address = $this->getMemcacheAddress();
-				$prefix  = $this->getPrefix();
-				$cache   = new $className($address[0], $address[1]);
+				$servers = $this->getMemcacheAddresses();
+				// care for a persistent connection
+				$cache   = new $className($this->getPrefix());
 
-				$cache->setPrefix($prefix);
+				foreach ($servers as $server) {
+					$cache->addServer($server[0], $server[1], isset($server[2]) ? $server[2] : 1);
+				}
+
 				break;
 
 			case 'BabelCache_Filesystem':
@@ -115,20 +117,25 @@ abstract class BabelCache_Factory {
 				$cache = new $className();
 		}
 
+		if (is_callable(array($cache, 'setPrefix'))) {
+			$prefix = $this->getPrefix();
+			$cache->setPrefix($prefix);
+		}
+
 		$this->instances[$className] = $cache;
 		return $cache;
 	}
 
 	/**
-	 * Return memcache address
+	 * Return memcache server addresses
 	 *
 	 * This method should return the memcache server address as a single
 	 * array(host, port).
 	 *
-	 * @return array  array(host, port)
+	 * @return array  array(array(host, port, weight))
 	 */
-	protected function getMemcacheAddress() {
-		return array('localhost', 11211);
+	protected function getMemcacheAddresses() {
+		return array(array('localhost', 11211, 1));
 	}
 
 	/**

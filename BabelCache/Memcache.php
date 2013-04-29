@@ -21,29 +21,25 @@
 class BabelCache_Memcache extends BabelCache_Abstract {
 	protected $memcached = null;  ///< Memcache  the current Memcache instance
 
-	/**
-	 * Constructor
-	 *
-	 * Opens the connection to memcached.
-	 *
-	 * @throws BabelCache_Exception  if the connection could not be established
-	 * @param  string $host          the host
-	 * @param  int    $port          the port
-	 */
-	public function __construct($host = 'localhost', $port = 11211) {
+	public function __construct() {
 		$this->memcached = new Memcache();
-
-		if (!$this->memcached->connect($host, $port)) {
-			throw new BabelCache_Exception('Could not connect to Memcache @ '.$host.':'.$port.'!');
-		}
 	}
 
 	public function getMemcached() {
 		return $this->memcached;
 	}
 
+	/**
+	 *
+	 * @param string $host           the port
+	 * @param int    $port           the port
+	 * @param int    $weight         weight as integer / decides ammount of keys saved on this server
+	 * @throws BabelCache_Exception  if the connection could not be established
+	 */
 	public function addServer($host, $port = 11211, $weight = 0) {
-		return $this->memcached->addServer($host, $port, true, $weight);
+		if (!$this->memcached->addServer($host, $port, true, $weight)) {
+			throw new BabelCache_Exception('Could not connect to Memcache @ '.$host.':'.$port.'!');
+		}
 	}
 
 	public function addServerEx($host, $port = 11211, $weight = 0, $persistent = true, $timeout = 1, $retryInterval = 15, $status = true, $failureCallback = null) {
@@ -82,7 +78,7 @@ class BabelCache_Memcache extends BabelCache_Abstract {
 	protected function _get($key, &$found) {
 		$value = $this->memcached->get($key);
 		$found = $value !== false;
-		
+
 		return $found ? unserialize($value) : $value;
 	}
 
