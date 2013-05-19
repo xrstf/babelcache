@@ -93,7 +93,7 @@ class APC implements AdapterInterface, LockingInterface {
 	 * @return boolean      true if successful, else false
 	 */
 	public function lock($key) {
-		return apc_add($key, 1);
+		return apc_add('lock:'.$key, 1);
 	}
 
 	/**
@@ -105,6 +105,6 @@ class APC implements AdapterInterface, LockingInterface {
 	 * @return boolean      true if successful, else false
 	 */
 	public function unlock($key) {
-		return apc_delete($key);
+		return apc_delete('lock:'.$key);
 	}
 }
