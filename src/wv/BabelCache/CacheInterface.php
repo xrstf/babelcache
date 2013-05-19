@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2012, webvariants GbR, http://www.webvariants.de
+ * Copyright (c) 2013, webvariants GbR, http://www.webvariants.de
  *
  * This file is released under the terms of the MIT license. You can find the
  * complete text in the attached LICENSE file or online at:
@@ -8,27 +8,17 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+namespace wv\BabelCache;
+
 /**
  * Generic cache interface
  *
- * This interface is used for all provided caches and provides a common set of
- * methods that all caches support. It's kind of the least common denominator.
+ * This defines the namespaced BabelCache caching interface. It's possible to
+ * implement the interface with a plain key-value storage.
  *
- * @author  Christoph Mewes
- * @package BabelCache.Storage
+ * @package BabelCache
  */
-interface BabelCache_Interface {
-	/**
-	 * Checks whether a caching system is avilable
-	 *
-	 * This method will be called before an instance is created. It is supposed
-	 * to check for the required functions and whether user data caching is
-	 * enabled.
-	 *
-	 * @return boolean  true if the cache can be used, else false
-	 */
-	public static function isAvailable();
-
+interface CacheInterface {
 	/**
 	 * Sets a value
 	 *
@@ -62,7 +52,7 @@ interface BabelCache_Interface {
 	 * @param  string $key        the object key
 	 * @return boolean            true if the value was deleted, else false
 	 */
-	public function delete($namespace, $key);
+	public function remove($namespace, $key);
 
 	/**
 	 * Checks whether a value exists
@@ -74,6 +64,23 @@ interface BabelCache_Interface {
 	public function exists($namespace, $key);
 
 	/**
+	 * Removes all values in a given namespace
+	 *
+	 * This method will remove all values by making them unavailable. For this,
+	 * the version number of the flushed namespace is increased by one.
+	 *
+	 * Implementations are *not* required to support non-recursive flushes. If
+	 * those are not supported, a recursive flush must be performed instead.
+	 * Userland code should assume that every clear operation is recursive and
+	 * the $recursive flag is a mere optimization hint.
+	 *
+	 * @param  string  $namespace  the namespace to use
+	 * @param  boolean $recursive  if set to true, all child namespaces will be cleared as well
+	 * @return boolean             true if the flush was successful, else false
+	 */
+	public function clear($namespace, $recursive = false);
+
+	/**
 	 * Locks a key
 	 *
 	 * This method will create a lock for a specific key. Caches that don't
@@ -81,10 +88,9 @@ interface BabelCache_Interface {
 	 *
 	 * @param  string $namespace  the namespace
 	 * @param  string $key        the key
-	 * @param  int    $duration   How long should the lock be alive?
 	 * @return boolean            true if the lock was aquired, else false
 	 */
-	public function lock($namespace, $key, $duration = 1);
+	public function lock($namespace, $key);
 
 	/**
 	 * Releases a lock
@@ -114,17 +120,5 @@ interface BabelCache_Interface {
 	 * @param  int    $checkInterval  the check interval (in milliseconds)
 	 * @return mixed                  the value from the cache if the lock was released, else $default
 	 */
-	public function waitForObject($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 50);
-
-	/**
-	 * Removes all values in a given namespace
-	 *
-	 * This method will flush all values by making them unavailable. For this,
-	 * the version number of the flushed namespace is increased by one.
-	 *
-	 * @param  string  $namespace  the namespace to use
-	 * @param  boolean $recursive  if set to true, all child namespaces will be cleared as well
-	 * @return boolean             true if the flush was successful, else false
-	 */
-	public function flush($namespace, $recursive = false);
+	public function waitForLockRelease($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 750);
 }

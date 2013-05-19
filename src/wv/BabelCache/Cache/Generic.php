@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2011, webvariants GbR, http://www.webvariants.de
+ * Copyright (c) 2013, webvariants GbR, http://www.webvariants.de
  *
  * This file is released under the terms of the MIT license. You can find the
  * complete text in the attached LICENSE file or online at:
@@ -8,51 +8,58 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+namespace wv\BabelCache\Cache;
+
+use wv\BabelCache\AdapterInterface;
+use wv\BabelCache\CacheInterface;
+use wv\BabelCache\Exception;
+use wv\BabelCache\IncrementInterface;
+use wv\BabelCache\LockingInterface;
+use wv\BabelCache\Util;
+
 /**
- * Base class for all in-memory caches
+ * Generic namespaced cache, based on key-value adapters
  *
  * This class encapsulates the algorithms used for creating a namespaced
  * environment in caching systems that don't really support it. The concrete
  * implementations will only wrap the specific functions added by the PECL
  * module.
  *
- * @author  Christoph Mewes
- * @package BabelCache.Storage
+ * @package BabelCache.Cache
  */
-abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Interface {
-	protected $versions   = array(); ///< array   runtime cache of versions
-	protected $prefix     = '';      ///< string  a prefix to run mutliple projects in an isolated way
-	protected $expiration = 0;       ///< int     expiration time (0 = never expire)
+class Generic implements CacheInterface {
+	protected $adapter;   ///< AdapterInterface  the actual storage system
+	protected $prefix;    ///< string            a prefix to run mutliple projects in an isolated way
+	protected $versions;  ///< array             runtime cache of versions
+
+	const MAX_KEY_LENGTH = 200;
+
+	public function __construct(AdapterInterface $adapter, $prefix = '') {
+		$this->adapter  = $adapter;
+		$this->prefix   = $prefix;
+		$this->versions = array();
+	}
 
 	/**
-	 * Returns the maximum length of a key
+	 * Get the wrapped adapter
 	 *
-	 * This method should return the implementation specific maximum length for
-	 * a key. 'Key' does not mean the BabelCache key, but the complete key that
-	 * will be constructed based on the namespace, key and the current versions.
-	 *
-	 * @return int  the max length (guess if you don't know)
+	 * @return AdapterInterface
 	 */
-	abstract public function getMaxKeyLength();
+	public function getAdapter() {
+		return $this->adapter;
+	}
 
 	/**
-	 * Does the caching system support locking natively?
+	 * Sets the key prefix
 	 *
-	 * @return boolean  true if locking support is avilable, else false
+	 * The key prefix will be put in front of the generated cache key, so that
+	 * multiple installations of the same system can co-exist on the same
+	 * machine.
+	 *
+	 * @param string $prefix  the prefix to use (will be trimmed)
 	 */
-	abstract public function hasLocking();
-
-	/**
-	 * Checks whether a caching system is avilable
-	 *
-	 * This method will be called before an instance is created. It is supposed
-	 * to check for the required functions and whether user data caching is
-	 * enabled.
-	 *
-	 * @return boolean
-	 */
-	public static function isAvailable() {
-		return true;
+	public function setPrefix($prefix) {
+		$this->prefix = trim($prefix);
 	}
 
 	/**
@@ -61,19 +68,19 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	 * This method will put a value into the cache. If it already exists, it
 	 * will be overwritten.
 	 *
-	 * @throws BabelCache_Exception  if an error occured
-	 * @param  string $namespace     the namespace to use
-	 * @param  string $key           the object key
-	 * @param  mixed  $value         the value to store
-	 * @return mixed                 the set value
+	 * @throws Exception          if an error occured
+	 * @param  string $namespace  the namespace to use
+	 * @param  string $key        the object key
+	 * @param  mixed  $value      the value to store
+	 * @return mixed              the set value
 	 */
 	public function set($namespace, $key, $value) {
 		$key  = $this->getFullKey($namespace, $key);  // namespace$key
 		$path = $this->createVersionPath($key, true); // foo@X.bla@Y...
 		$path = $this->getPrefixed($path);            // prefix/foo@X.bla@Y...
 
-		if (!$this->_set($path, $value, $this->expiration)) {
-			throw new BabelCache_Exception('Error setting value @ '.$key.'!');
+		if (!$this->adapter->set($path, $value)) {
+			throw new Exception('Error setting value @ '.$key.'!');
 		}
 
 		return $value;
@@ -90,9 +97,10 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 		$key  = $this->getFullKey($namespace, $key);   // namespace$key
 		$path = $this->createVersionPath($key, false); // foo@X.bla@Y...
 
+		// if a valid path could be constructed, check the element's existence
 		if ($path !== false) {
 			$path = $this->getPrefixed($path); // prefix/foo@X.bla@Y...
-			$path = $this->_isset($path);
+			$path = $this->adapter->exists($path);
 		}
 
 		return $path !== false;
@@ -118,7 +126,7 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 		}
 
 		$path  = $this->getPrefixed($path); // prefix/foo@X.bla@Y...
-		$value = $this->_get($path, $found);
+		$value = $this->adapter->get($path, $found);
 
 		return $found ? $value : $default;
 	}
@@ -130,12 +138,25 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	 * @param  string $key        the object key
 	 * @return boolean            true if the value was deleted, else false
 	 */
-	public function delete($namespace, $key) {
+	public function remove($namespace, $key) {
 		$key  = $this->getFullKey($namespace, $key);   // namespace$key
 		$path = $this->createVersionPath($key, false); // foo@X.bla@Y...
 		$path = $this->getPrefixed($path);             // prefix/foo@X.bla@Y...
 
-		return $this->_delete($path);
+		return $this->adapter->remove($path);
+	}
+
+	/**
+	 * Removes a single value from the cache
+	 *
+	 * @deprecated  since 2.0, use remove() instead
+	 *
+	 * @param  string $namespace  the namespace to use
+	 * @param  string $key        the object key
+	 * @return boolean            true if the value was deleted, else false
+	 */
+	public function delete($namespace, $key) {
+		return $this->remove($namespace, $key);
 	}
 
 	/**
@@ -152,8 +173,8 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	 * @param  boolean $recursive  This parameter will always be ignored and set to true.
 	 * @return boolean             true if the flush was successful, else false
 	 */
-	public function flush($namespace, $recursive = false) {
-		$this->checkString($namespace, 'namespace');
+	public function clear($namespace, $recursive = false) {
+		Util::checkString($namespace, 'namespace');
 
 		$fullKey = $namespace.'$';
 		$path    = $this->createVersionPath($fullKey, false, true);
@@ -165,7 +186,21 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 		// prefix/version:foo@123.bar@45.mynamespace++;
 
 		$this->versions = array();
-		return $this->_increment($this->getPrefixed('version:'.$path), 1, $this->expiration) !== false;
+
+		return $this->increment($this->getPrefixed('version:'.$path)) !== false;
+	}
+
+	/**
+	 * Removes all values in a given namespace
+	 *
+	 * @deprecated  since 2.0, use clear() instead
+	 *
+	 * @param  string  $namespace  the namespace to use
+	 * @param  boolean $recursive  This parameter will always be ignored and set to true.
+	 * @return boolean             true if the flush was successful, else false
+	 */
+	public function flush($namespace, $recursive = false) {
+		return $this->clear($namespace, $recursive);
 	}
 
 	/**
@@ -176,25 +211,12 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	 *
 	 * @param  string $namespace  the namespace
 	 * @param  string $key        the key
-	 * @param  int    $duration   How long should the lock be alive?
 	 * @return boolean            true if the lock was aquired, else false
 	 */
-	public function lock($namespace, $key, $duration = 1) {
+	public function lock($namespace, $key) {
 		$key = $this->getFullKey($namespace, $key);
 
-		if ($this->hasLocking()) {
-			return $this->_lock($key);
-		}
-		else {
-			$fullKey = $this->getPrefixed('lock:'.$key);
-			$isset   = $this->_isset($fullKey);
-
-			if ($isset === true) {
-				return false;
-			}
-
-			return $this->_setRaw($fullKey, 1, $duration);
-		}
+		return $this->lockKey($key);
 	}
 
 	/**
@@ -209,19 +231,7 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	public function unlock($namespace, $key) {
 		$key = $this->getFullKey($namespace, $key);
 
-		if ($this->hasLocking()) {
-			return $this->_unlock($key);
-		}
-		else {
-			$fullKey = $this->getPrefixed('lock:'.$key);
-			$isset   = $this->_isset($fullKey);
-
-			if ($isset === false) {
-				return true;
-			}
-
-			return $this->_delete($fullKey);
-		}
+		return $this->unlockKey($key);
 	}
 
 	/**
@@ -241,7 +251,7 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	 * @param  int    $checkInterval  the check interval (in milliseconds)
 	 * @return mixed                  the value from the cache if the lock was released, else $default
 	 */
-	public function waitForObject($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 50) {
+	public function waitForLockRelease($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 750) {
 		$fullKey        = $this->getFullKey($namespace, $key);
 		$start          = microtime(true);
 		$waited         = 0;
@@ -260,28 +270,6 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	}
 
 	/**
-	 * Sets the expiration time
-	 *
-	 * @param int $exp  time in seconds until a value should be expired
-	 */
-	public function setExpiration($exp) {
-		$this->expiration = (int) $exp;
-	}
-
-	/**
-	 * Sets the key prefix
-	 *
-	 * The key prefix will be put in front of the generated cache key, so that
-	 * multiple installations of the same system can co-exist on the same
-	 * machine.
-	 *
-	 * @param string $prefix  the prefix to use (will be trimmed)
-	 */
-	public function setPrefix($prefix) {
-		$this->prefix = trim($prefix);
-	}
-
-	/**
 	 * Creates the full key
 	 *
 	 * This method will concat the namespace and key and check the length so that
@@ -292,13 +280,12 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	 * @param  string $key           the key
 	 * @return string                'namespace$key'
 	 */
-	private function getFullKey($namespace, $key) {
-		$fullKey   = $this->getFullKeyHelper($namespace, $key);
-		$maxLength = $this->getMaxKeyLength();
-		$testKey   = $this->getPrefixed($fullKey);
+	protected function getFullKey($namespace, $key) {
+		$fullKey = Util::getFullKeyHelper($namespace, $key);
+		$testKey = $this->getPrefixed($fullKey);
 
-		if (strlen($testKey) > $maxLength) {
-			throw new BabelCache_Exception('The given key is too long. At most '.$maxLength.' characters are allowed.');
+		if (strlen($testKey) > self::MAX_KEY_LENGTH) {
+			throw new Exception('The given key is too long. At most '.self::MAX_KEY_LENGTH.' characters are allowed.');
 		}
 
 		return $fullKey;
@@ -313,7 +300,7 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	 * @param  string $fullKey  the full key (namespace + key)
 	 * @return string           'prefix/namespace$key' or 'namespace$key'
 	 */
-	private function getPrefixed($fullKey) {
+	protected function getPrefixed($fullKey) {
 		return strlen($this->prefix) === 0 ? $fullKey : $this->prefix.'/'.$fullKey;
 	}
 
@@ -343,7 +330,7 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	 * @param  boolean $excludeLastVersion  if true, the last part of the namespace won't be versioned
 	 * @return string                       the full key to be used when calling the caching system
 	 */
-	private function createVersionPath($fullKey, $createIfMissing = true, $excludeLastVersion = false) {
+	protected function createVersionPath($fullKey, $createIfMissing = true, $excludeLastVersion = false) {
 		list($pathString, $keyName) = explode('$', $fullKey);
 
 		$path  = array();
@@ -395,10 +382,10 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	 * @param  string $path  the path for which the version number should be fetched
 	 * @return int           the version or null if non was found
 	 */
-	private function getVersion($path) {
+	protected function getVersion($path) {
 		if (!isset($this->versions[$path])) {
-			$version = $this->_getRaw($this->getPrefixed('version:'.$path));
-			$this->versions[$path] = $version === false ? null : $version;
+			$version = $this->adapter->get($this->getPrefixed('version:'.$path));
+			$this->versions[$path] = empty($version) ? null : $version;
 		}
 
 		return $this->versions[$path];
@@ -413,8 +400,8 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	 * @param string $path     the path for which the version applies
 	 * @param int    $version  the version number
 	 */
-	private function setVersion($path, $version) {
-		$this->_setRaw($this->getPrefixed('version:'.$path), $version, $this->expiration);
+	protected function setVersion($path, $version) {
+		$this->adapter->set($this->getPrefixed('version:'.$path), $version);
 		$this->versions[$path] = $version;
 	}
 
@@ -424,96 +411,85 @@ abstract class BabelCache_Abstract extends BabelCache implements BabelCache_Inte
 	 * @param  string $key  the key to check
 	 * @return boolean      true if a lock exists, else false
 	 */
-	private function hasLock($key) {
+	protected function hasLock($key) {
 		$fullKey = $this->getPrefixed('lock:'.$key);
-		$hasLock = $this->hasLocking() ? $this->_lock($key) === false : $this->_isset($fullKey) === true;
+		$hasLock = $this->lockKey($key) === false;
 
 		// If we just created an accidental lock, remove it.
-
-		if ($this->hasLocking() && !$hasLock) {
-			$this->_unlock($key);
+		if (!$hasLock) {
+			$this->unlockKey($key);
 		}
-		\preg_match($key, $subject);
+
 		return $hasLock;
 	}
 
 	/**
-	 * Wrapper method for getting a value from the cache
+	 * Lock a key
 	 *
-	 * @param  string  $key     the element's key
-	 * @param  boolean $found   true or false whether the key was found
-	 * @return mixed            the found value or false
+	 * The key is supposed to be the full key, i.e. a combination of namespace
+	 * and element key.
+	 *
+	 * @param  string $key  the key to lock
+	 * @return boolean      true if the lock was aquired, else false
 	 */
-	abstract protected function _get($key, &$found);
+	protected function lockKey($key) {
+		if ($this->adapter instanceof LockingInterface) {
+			return $this->adapter->lock($key);
+		}
+		else {
+			$fullKey = $this->getPrefixed('lock:'.$key);
+			$isset   = $this->adapter->exists($fullKey);
+
+			// lock exists already
+			if ($isset === true) {
+				return false;
+			}
+
+			return $this->adapter->set($fullKey, 1);
+		}
+	}
 
 	/**
-	 * Special wrapper for scalar data
+	 * Unlock a key
 	 *
-	 * This wrapper is used when this implementation needs to store simple scalar
-	 * values (i.e. version numbers or locks). It exists so that some caching
-	 * systems can skip the serialization step when storing data.
+	 * The key is supposed to be the full key, i.e. a combination of namespace
+	 * and element key.
 	 *
-	 * This method is not publicly available.
+	 * @param  string $key  the key to unlock
+	 * @return boolean      true if the lock was released or there was no lock, else false
+	 */
+	protected function unlockKey($key) {
+		if ($this->adapter instanceof LockingInterface) {
+			return $this->adapter->unlock($key);
+		}
+		else {
+			$fullKey = $this->getPrefixed('lock:'.$key);
+			$isset   = $this->adapter->exists($fullKey);
+
+			// no lock, everything's shiny
+			if ($isset === false) {
+				return true;
+			}
+
+			return $this->adapter->remove($fullKey);
+		}
+	}
+
+	/**
+	 * Increment a key in a portable way
 	 *
 	 * @param  string $key  the element's key
-	 * @return mixed        the value or false if it wasn't found
+	 * @return int          the value after it has been incremented or false if the operation failed
 	 */
-	abstract protected function _getRaw($key);
+	protected function increment($key) {
+		if ($this->adapter instanceof IncrementInterface) {
+			return $this->adapter->increment($key);
+		}
 
-	/**
-	 * Wrapper method for setting a value in the cache
-	 *
-	 * @param  string $key         the element's key
-	 * @param  string $value       the element's value
-	 * @param  string $expiration  the expiration time in seconds
-	 * @return mixed               the value just set
-	 */
-	abstract protected function _set($key, $value, $expiration);
+		$found = false;
+		$value = $this->adapter->get($key, $found);
+		$value = $found ? ($value + 1) : 1;
 
-	/**
-	 * Wrapper method for setting a scalar value in the cache
-	 *
-	 * This wrapper is used when this implementation needs to read simple scalar
-	 * values (i.e. version numbers or locks). It exists so that some caching
-	 * systems can skip the deserialization step when reading data.
-	 *
-	 * This method is not publicly available.
-	 *
-	 * @param  string $key         the element's key
-	 * @param  string $value       the element's value
-	 * @param  string $expiration  the expiration time in seconds
-	 * @return mixed               the value just set
-	 */
-	abstract protected function _setRaw($key, $value, $expiration);
-
-	/**
-	 * Wrapper method for deleting a value from the cache
-	 *
-	 * @param  string $key  the element's key
-	 * @return boolean      true if the value was deleted, else false
-	 */
-	abstract protected function _delete($key);
-
-	/**
-	 * Wrapper method for testing for existence
-	 *
-	 * This method exists so that get() can distinguish between 'false' as a
-	 * value and 'false' as a sign of missing elements.
-	 *
-	 * @param  string $key  the element's key
-	 * @return boolean      true if the value exists, else false
-	 */
-	abstract protected function _isset($key);
-
-	/**
-	 * Wrapper method for adding 1 to a value
-	 *
-	 * Since many caching systems directly support incremeting a value, this
-	 * wrapper was added. Systems without support should just get the value,
-	 * add 1 and store it again.
-	 *
-	 * @param  string $key  the element's key
-	 * @return boolean      true if the increment was successful, else false
-	 */
-	abstract protected function _increment($key);
+		return $this->adapter->set($key, $value) ? $value : false;
+	}
 }

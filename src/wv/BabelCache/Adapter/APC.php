@@ -1,12 +1,17 @@
 <?php
 /*
- * Copyright (c) 2012, webvariants GbR, http://www.webvariants.de
+ * Copyright (c) 2013, webvariants GbR, http://www.webvariants.de
  *
  * This file is released under the terms of the MIT license. You can find the
  * complete text in the attached LICENSE file or online at:
  *
  * http://www.opensource.org/licenses/mit-license.php
  */
+
+namespace wv\BabelCache\Adapter;
+
+use wv\BabelCache\AdapterInterface;
+use wv\BabelCache\LockingInterface;
 
 /**
  * Alternative PHP Cache
@@ -17,11 +22,10 @@
  * On APC < 3.1.4, all data will be manually serialized by this class, else
  * it will rely on APC to handle complex data.
  *
- * @author  Christoph Mewes
  * @see     http://php.net/manual/de/book.apc.php
- * @package BabelCache.Storage
+ * @package BabelCache.Adapter
  */
-class BabelCache_APC extends BabelCache_Abstract {
+class APC implements AdapterInterface, LockingInterface {
 	private $hasExistsMethod = null; ///< boolean  true if apc_exists() exists, else false
 
 	/**
@@ -49,48 +53,35 @@ class BabelCache_APC extends BabelCache_Abstract {
 		return $avail;
 	}
 
-	public function getMaxKeyLength() {
-		return 200; // unbekannt -> Schätzwert
-	}
-
-	public function hasLocking() {
-		return true;
-	}
-
-	protected function _getRaw($key) {
-		return apc_fetch($key);
-	}
-
-	protected function _get($key, &$found) {
+	public function get($key, &$found = null) {
 		$value = apc_fetch($key, $found);
 
-		return $found ? $value : unserialize($value);
+		return $found ? unserialize($value) : null;
 	}
 
-	protected function _setRaw($key, $value, $expiration) {
-		$this->_delete($key); // explicit delete since APC does not allow multiple store() calls during the same request
-		return apc_store($key, $value, $expiration);
-	}
+	public function set($key, $value, $expiration = null) {
+		// explicit delete since APC does not allow multiple store() calls during the same request
+		$this->delete($key);
 
-	protected function _set($key, $value, $expiration) {
-		$this->_delete($key); // explicit delete since APC does not allow multiple store() calls during the same request
 		return apc_store($key, serialize($value), $expiration);
 	}
 
-	protected function _delete($key) {
+	public function remove($key) {
 		return apc_delete($key);
 	}
 
-	protected function _isset($key) {
-		if ($this->hasExistsMethod) return apc_exists($key);
+	public function exists($key) {
+		if ($this->hasExistsMethod) {
+			return apc_exists($key);
+		}
 
 		apc_fetch($key, $found);
 
 		return $found;
 	}
 
-	protected function _increment($key) {
-		return apc_inc($key) !== false;
+	public function clear() {
+		return apc_clear_cache('user');
 	}
 
 	/**
@@ -101,7 +92,7 @@ class BabelCache_APC extends BabelCache_Abstract {
 	 * @param  string $key  the key to lock
 	 * @return boolean      true if successful, else false
 	 */
-	protected function _lock($key) {
+	public function lock($key) {
 		return apc_add($key, 1);
 	}
 
@@ -113,7 +104,7 @@ class BabelCache_APC extends BabelCache_Abstract {
 	 * @param  string $key  the key to unlock
 	 * @return boolean      true if successful, else false
 	 */
-	protected function _unlock($key) {
+	public function unlock($key) {
 		return apc_delete($key);
 	}
 }

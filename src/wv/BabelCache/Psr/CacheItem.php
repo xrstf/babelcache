@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2012, webvariants GbR, http://www.webvariants.de
+ * Copyright (c) 2013, webvariants GbR, http://www.webvariants.de
  *
  * This file is released under the terms of the MIT license. You can find the
  * complete text in the attached LICENSE file or online at:
@@ -15,8 +15,7 @@ use Psr\Cache\CacheItemInterface;
 /**
  * Basic implementation for PSR's cache item
  *
- * @author  Christoph Mewes
- * @package BabelCache
+ * @package BabelCache.Psr
  */
 class CacheItem implements CacheItemInterface {
 	protected $key;

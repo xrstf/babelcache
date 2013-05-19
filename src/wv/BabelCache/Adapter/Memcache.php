@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2012, webvariants GbR, http://www.webvariants.de
+ * Copyright (c) 2013, webvariants GbR, http://www.webvariants.de
  *
  * This file is released under the terms of the MIT license. You can find the
  * complete text in the attached LICENSE file or online at:
@@ -14,9 +14,8 @@
  * This class wraps the memcache extension of PHP. Don't mix it up with the
  * memcached (with d!) extension, for which you have to use BabelCache_Memcached.
  *
- * @author  Christoph Mewes
  * @see     http://www.php.net/manual/de/book.memcache.php
- * @package BabelCache.Storage
+ * @package BabelCache.Adapter
  */
 class BabelCache_Memcache extends BabelCache_Abstract {
 	protected $memcached = null;  ///< Memcache  the current Memcache instance

@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2012, webvariants GbR, http://www.webvariants.de
+ * Copyright (c) 2013, webvariants GbR, http://www.webvariants.de
  *
  * This file is released under the terms of the MIT license. You can find the
  * complete text in the attached LICENSE file or online at:
@@ -22,8 +22,7 @@ use wv\BabelCache\Adapter\AdapterInterface;
  *
  * By design, this implementation does not support any kind of namespacing.
  *
- * @author  Christoph Mewes
- * @package BabelCache
+ * @package BabelCache.Psr
  */
 class Cache implements CacheInterface {
 	protected $adapter;
@@ -46,7 +45,7 @@ class Cache implements CacheInterface {
 	}
 
 	public function remove($key) {
-		$this->adapter->delete($key, $value, $ttl);
+		$this->adapter->remove($key, $value, $ttl);
 
 		return true;
 	}

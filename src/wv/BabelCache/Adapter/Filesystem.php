@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2012, webvariants GbR, http://www.webvariants.de
+ * Copyright (c) 2013, webvariants GbR, http://www.webvariants.de
  *
  * This file is released under the terms of the MIT license. You can find the
  * complete text in the attached LICENSE file or online at:
@@ -32,9 +32,8 @@
  * should suffice in 99,9% of all cases (if you really need to store large
  * amount of data, consider using Memcached instead).
  *
- * @author  Christoph Mewes
  * @see     BabelCache_Filesystem_Plain
- * @package BabelCache.Storage
+ * @package BabelCache.Adapter
  */
 class BabelCache_Filesystem extends BabelCache implements BabelCache_Interface {
 	protected $dataDir = '';    ///< string  absolute path to the cache directory

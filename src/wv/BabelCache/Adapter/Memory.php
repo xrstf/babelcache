@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2012, webvariants GbR, http://www.webvariants.de
+ * Copyright (c) 2013, webvariants GbR, http://www.webvariants.de
  *
  * This file is released under the terms of the MIT license. You can find the
  * complete text in the attached LICENSE file or online at:
@@ -8,80 +8,57 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+namespace wv\BabelCache\Adapter;
+
+use wv\BabelCache\AdapterInterface;
+use wv\BabelCache\LockingInterface;
+
 /**
  * Runtime cache
  *
- * This class will store the cached data only for the current request. Its main
- * purpose is to aid the filesystem cache in storing the data in memory, so that
- * repeated calls don't have to read and deserialize the data from disk every
- * time.
- *
- * Lockig does of course not make any sense, so the corresponding methods will
- * just return true.
- *
- * @author  Christoph Mewes
- * @see     BabelCache_Filesystem
- * @package BabelCache.Storage
+ * @package BabelCache.Adapter
  */
-class BabelCache_Memory extends BabelCache implements BabelCache_Interface {
-	protected $data = array();  ///< array  contains the cached data {namespace => {key: value, key: value}}
+class Memory implements AdapterInterface, LockingInterface {
+	protected $data = array();  ///< array  contains the cached data {key: value, key: value}
 
 	public static function isAvailable() {
 		return true;
 	}
 
-	public function lock($namespace, $key, $duration = 1) {
+	public function get($key, &$found = null) {
+		$found = $thiis->exists($key);
+
+		return $found ? $this->data[$key] : null;
+	}
+
+	public function set($key, $value) {
+		$this->data[$key] = $value;
+
 		return true;
 	}
 
-	public function unlock($namespace, $key) {
+	public function remove($key) {
+		$exists = $this->exists($key);
+		unset($this->data[$key]);
+
+		return $exists;
+	}
+
+	public function exists($key) {
+		return array_key_exists($key, $this->data);
+	}
+
+	public function clear() {
+		$this->data = array();
+
 		return true;
 	}
 
-	public function waitForObject($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 50) {
-		return $this->get($namespace, $key, $default);
+	public function lock($key) {
+		return true;
 	}
 
-	public function set($namespace, $key, $value) {
-		$this->data[$namespace][$key] = $value;
-		return $value;
-	}
-
-	public function exists($namespace, $key) {
-		// in_array, weil isset(null) = false ist.
-		return isset($this->data[$namespace]) && array_key_exists($key, $this->data[$namespace]);
-	}
-
-	public function get($namespace, $key, $default = null, &$found = null) {
-		$found = $this->exists($namespace, $key);
-
-		return $found ? $this->data[$namespace][$key] : false;
-	}
-
-	public function delete($namespace, $key) {
-		unset($this->data[$namespace][$key]);
-	}
-
-	public function flush($namespace, $recursive = false) {
-		if (empty($this->data)) {
-			return true;
-		}
-
-		unset($this->data[$namespace]);
-
-		if (!$recursive) {
-			return true;
-		}
-
-		$pattern    = "$namespace*";
-		$namespaces = array_keys($this->data);
-
-		foreach ($namespaces as $pkg) {
-			if (fnmatch($pattern, $pkg)) {
-				unset($this->data[$pkg]);
-			}
-		}
-
+	public function unlock($key) {
 		return true;
 	}
 }

@@ -1,12 +1,17 @@
 <?php
 /*
- * Copyright (c) 2012, webvariants GbR, http://www.webvariants.de
+ * Copyright (c) 2013, webvariants GbR, http://www.webvariants.de
  *
  * This file is released under the terms of the MIT license. You can find the
  * complete text in the attached LICENSE file or online at:
  *
  * http://www.opensource.org/licenses/mit-license.php
  */
+
+namespace wv\BabelCache\Adapter;
+
+use wv\BabelCache\AdapterInterface;
+use wv\BabelCache\LockingInterface;
 
 /**
  * Blackhole Caching
@@ -16,44 +21,40 @@
  * so that code relying on a cache can use the cache instance normally without
  * checking for null.
  *
- * @author  Christoph Mewes
- * @package BabelCache.Storage
+ * @package BabelCache.Adapter
  */
-class BabelCache_Blackhole extends BabelCache implements BabelCache_Interface {
+class Blackhole implements AdapterInterface, LockingInterface {
 	public static function isAvailable() {
 		return true;
 	}
 
-	public function set($namespace, $key, $value) {
-		return $value;
+	public function get($key, &$found = null) {
+		$found = false;
+
+		return null;
 	}
 
-	public function exists($namespace, $key) {
+	public function set($key, $value) {
+		return true;
+	}
+
+	public function remove($key) {
+		return true;
+	}
+
+	public function exists($key) {
 		return false;
 	}
 
-	public function get($namespace, $key, $default = null, &$found = null) {
-		$found = false;
-		return $default;
-	}
-
-	public function lock($namespace, $key, $duration = 1) {
+	public function clear() {
 		return true;
 	}
 
-	public function unlock($namespace, $key) {
+	public function lock($key) {
 		return true;
 	}
 
-	public function waitForObject($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 50) {
-		return true;
-	}
-
-	public function delete($namespace, $key) {
-		return true;
-	}
-
-	public function flush($namespace, $recursive = false) {
+	public function unlock($key) {
 		return true;
 	}
 }

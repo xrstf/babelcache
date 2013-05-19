@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2012, webvariants GbR, http://www.webvariants.de
+ * Copyright (c) 2013, webvariants GbR, http://www.webvariants.de
  *
  * This file is released under the terms of the MIT license. You can find the
  * complete text in the attached LICENSE file or online at:
@@ -14,9 +14,8 @@
  * This class wraps the XCache extension, which provides both opcode and vardata
  * caching.
  *
- * @author  Christoph Mewes
  * @see     http://xcache.lighttpd.net/
- * @package BabelCache.Storage
+ * @package BabelCache.Adapter
  */
 class BabelCache_XCache extends BabelCache_Abstract {
 	public function getMaxKeyLength() {
