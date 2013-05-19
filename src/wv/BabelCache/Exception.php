@@ -8,6 +8,8 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+namespace wv\BabelCache;
+
 /**
  * Exception class
  *
@@ -16,4 +18,4 @@
  *
  * @package BabelCache
  */
-class BabelCache_Exception extends Exception { }
+class Exception extends \Exception { }

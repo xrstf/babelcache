@@ -8,16 +8,15 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+namespace wv\BabelCache;
+
 /**
- * Base class for (nearly) all caches
- *
- * This class only contains three little methods. Most of the time, you will be
- * using generateKey().
+ * Utility class
  *
  * @author  Christoph Mewes
  * @package BabelCache
  */
-abstract class BabelCache {
+abstract class Util {
 	/**
 	 * Create cache key
 	 *
@@ -30,7 +29,7 @@ abstract class BabelCache {
 	 *
 	 * @verbatim
 	 * $myVar = 5;
-	 * $key   = BabelCache::generateKey(12, $myVar, 'foobar', true, 4.45, array(1,2), 'x');
+	 * $key   = Util::generateKey(12, $myVar, 'foobar', true, 4.45, array(1,2), 'x');
 	 * $key   = '12_5_foobar_1_4#45_a[1_2]_x';
 	 * @endverbatim
 	 *
@@ -101,13 +100,13 @@ abstract class BabelCache {
 	 * @param  string $name          the 'variable name' of the string
 	 * @return string                the unaltered string
 	 */
-	protected function checkString($str, $name) {
+	public static function checkString($str, $name) {
 		if (!is_string($str) && !is_integer($str)) {
-			throw new BabelCache_Exception('Given '.$name.' parameter is not a string/int, but a '.gettype($str).'.');
+			throw new Exception('Given '.$name.' parameter is not a string/int, but a '.gettype($str).'.');
 		}
 
 		if (is_string($str) && strlen($str) === 0) {
-			throw new BabelCache_Exception('No '.$name.' given.');
+			throw new Exception('No '.$name.' given.');
 		}
 
 		if (
@@ -116,7 +115,7 @@ abstract class BabelCache {
 			strpos($str, '..') !== false ||
 			!preg_match('#^[a-z0-9_.\[\]%\#-]+$#i', $str)
 		) {
-			throw new BabelCache_Exception('A malformed '.$name.' was given.');
+			throw new Exception('A malformed '.$name.' was given.');
 		}
 
 		return $str;
@@ -136,11 +135,11 @@ abstract class BabelCache {
 	 * @param  string $key           key
 	 * @return string                'namespace$key' or 'namespace'
 	 */
-	protected function getFullKeyHelper($namespace, $key) {
-		$fullKey = $this->checkString($namespace, 'namespace');
+	public static function getFullKeyHelper($namespace, $key) {
+		$fullKey = self::checkString($namespace, 'namespace');
 
 		if (strlen($key) > 0) {
-			$fullKey .= '$'.$this->checkString($key, 'key');
+			$fullKey .= '$'.self::checkString($key, 'key');
 		}
 
 		return $fullKey;

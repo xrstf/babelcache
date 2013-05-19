@@ -8,5 +8,4 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-require 'Autoload.php';
 require 'tests/TestFactory.php';
