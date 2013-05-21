@@ -121,4 +121,15 @@ interface CacheInterface {
 	 * @return mixed                  the value from the cache if the lock was released, else $default
 	 */
 	public function waitForLockRelease($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 750);
+
+	/**
+	 * Sets the key prefix
+	 *
+	 * The key prefix will be put in front of the generated cache key, so that
+	 * multiple installations of the same system can co-exist on the same
+	 * machine.
+	 *
+	 * @param string $prefix  the prefix to use (will be trimmed)
+	 */
+	public function setPrefix($prefix);
 }

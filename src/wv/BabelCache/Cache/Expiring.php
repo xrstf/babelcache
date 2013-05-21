@@ -111,4 +111,8 @@ class Expiring implements CacheInterface {
 	public function waitForLockRelease($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 750) {
 		return $this->cache->waitForLockRelease($namespace, $key, $default, $maxWaitTime, $checkInterval);
 	}
+
+	public function setPrefix($prefix) {
+		$this->cache->setPrefix($prefix);
+	}
 }

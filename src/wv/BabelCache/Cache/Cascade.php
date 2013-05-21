@@ -73,4 +73,9 @@ class Cascade implements CacheInterface {
 	public function waitForLockRelease($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 750) {
 		return $this->primaryCache->waitForLockRelease($namespace, $key, $default, $maxWaitTime, $checkInterval);
 	}
+
+	public function setPrefix($prefix) {
+		$this->primaryCache->setPrefix($prefix);
+		$this->secondaryCache->setPrefix($prefix);
+	}
 }
