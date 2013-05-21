@@ -147,19 +147,6 @@ class Generic implements CacheInterface {
 	}
 
 	/**
-	 * Removes a single value from the cache
-	 *
-	 * @deprecated  since 2.0, use remove() instead
-	 *
-	 * @param  string $namespace  the namespace to use
-	 * @param  string $key        the object key
-	 * @return boolean            true if the value was deleted, else false
-	 */
-	public function delete($namespace, $key) {
-		return $this->remove($namespace, $key);
-	}
-
-	/**
 	 * Removes all values in a given namespace
 	 *
 	 * This method will flush all values by making them unavailable. For this,
@@ -188,19 +175,6 @@ class Generic implements CacheInterface {
 		$this->versions = array();
 
 		return $this->increment($this->getPrefixed('version:'.$path)) !== false;
-	}
-
-	/**
-	 * Removes all values in a given namespace
-	 *
-	 * @deprecated  since 2.0, use clear() instead
-	 *
-	 * @param  string  $namespace  the namespace to use
-	 * @param  boolean $recursive  This parameter will always be ignored and set to true.
-	 * @return boolean             true if the flush was successful, else false
-	 */
-	public function flush($namespace, $recursive = false) {
-		return $this->clear($namespace, $recursive);
 	}
 
 	/**
