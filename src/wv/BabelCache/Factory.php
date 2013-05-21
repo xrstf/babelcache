@@ -8,128 +8,224 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+namespace wv\BabelCache;
+
+use wv\BabelCache\Cache;
+use wv\BabelCache\Psr;
+
 /**
- * Base factory
- *
- * This class can be used to create %BabelCache instances. Be aware that you
- * have to subclass it and at least need to implement getCacheDirectory().
- *
- * When caching is globally disabled, the factory will always return the
- * blackhole cache.
+ * Factory
  *
  * @package BabelCache
  */
-abstract class BabelCache_Factory {
-	private $instances     = array();  ///< array    list of caching instances
-	private $cacheDisabled = false;    ///< boolean
+abstract class Factory {
+	/**
+	 * list of known adapters
+	 *
+	 * @var array
+	 */
+	protected $adapters;
 
 	/**
-	 * Disable caching globally
+	 * list of adapters that should not be used together with a generic cache,
+	 * but rather use their own, standalone caching implementation for
+	 * performance reasons
 	 *
-	 * After this method is called, getCache() will always return the blackhole
-	 * cache.
+	 * @var array
 	 */
-	public function disableCaching() {
-		$this->cacheDisabled = true;
+	protected $overwrites;
+
+	/**
+	 * Constructor
+	 */
+	public function __construct() {
+		$prefix = 'wv\BabelCache\Adapter\\';
+
+		$this->adapters = array(
+			'apc'        => $prefix.'APC',
+			'blackhole'  => $prefix.'Blackhole',
+			'filesystem' => $prefix.'Filesystem',
+			'memcache'   => $prefix.'Memcache',
+			'memcached'  => $prefix.'Memcached',
+			'memory'     => $prefix.'Memory',
+			'sqlite'     => $prefix.'SQLite',
+			'xcache'     => $prefix.'XCache',
+			'zendserver' => $prefix.'ZendServer'
+		);
+
+		$prefix = 'wv\BabelCache\Cache\\';
+
+		$this->overwrites = array(
+			'blackhole' => $prefix.'BlackholeCache'
+		);
 	}
 
 	/**
-	 * Enable caching globally
+	 * Set an adapter mapping
 	 *
-	 * This method re-enables the caching, so that getCache() works normally
-	 * again.
+	 * @param string $key        adapter name, e.g. 'sqlite'
+	 * @param string $className  class name, e.g. 'my\Cool\Adapter'
 	 */
-	public function enableCaching() {
-		$this->cacheDisabled = false;
+	public function setAdapter($key, $className) {
+		$this->adapters[$key] = $className;
 	}
 
 	/**
-	 * Create / get cache instance
+	 * Get a list of all adapters
 	 *
-	 * This method will create a new cache instance, if none was found. If an
-	 * instance is already known, it is returned immediatly.
-	 *
-	 * This method also initializes the cache by setting certain parameters. To
-	 * alter them, override the corresponding methods.
-	 *
-	 * @throws BabelCache_Exception  if the class was not found or the cache is not available
-	 * @param  string $className     the full class name of the cache you want to get
-	 * @return BabelCache_Interface  the requested cache instance (singleton)
+	 * @return array  {name: className, name: className, ...}
 	 */
-	public function getCache($className) {
-		if ($this->cacheDisabled) {
-			return $this->factory('BabelCache_Blackhole');
+	public function getAdapters() {
+		return $this->adapters;
+	}
+
+	/**
+	 * Set an overwrite mapping
+	 *
+	 * By this, you can make the factory use a concrete caching class instead of
+	 * using the generic implementation with a key-value adapter. Use this for
+	 * caches like the filesystem which can handle namespaced content natively.
+	 *
+	 * @param string $key        adapter name, e.g. 'sqlite'
+	 * @param string $className  cache class name, e.g. 'my\Cool\SQLiteCache'
+	 */
+	public function setOverwrite($key, $className) {
+		$this->overwrites[$key] = $className;
+	}
+
+	/**
+	 * Create cache instance
+	 *
+	 * @throws Exception              if the adapter was not found or is not available
+	 * @param  string  $adapter       the adapter key
+	 * @param  boolean $forceGeneric  set this to true to disable the automatic class overwriting
+	 * @return CacheInterface         a fresh cache instance
+	 */
+	public function getCache($adapter, $forceGeneric = false) {
+		$className   = $this->getAdapterClass($adapter);
+		$overwritten = false;
+
+		// overwrite the adapter with a custom caching implementation
+
+		if (!$forceGeneric && isset($this->overwrites[$adapter])) {
+			$className   = $this->overwrites[$adapter];
+			$overwritten = true;
 		}
 
-		if (!class_exists($className)) {
-			throw new BabelCache_Exception('Invalid class given.');
+		// create adapter/cache (assuming both have the same signatures)
+
+		$instance = $this->construct($adapter, $className);
+		$cache    = $overwritten ? $instance : new Cache\Generic($instance);
+
+		$instance->setPrefix($this->getPrefix());
+
+		// done
+
+		return $instance;
+	}
+
+	/**
+	 * Create a PSR-compatible cache instance
+	 *
+	 * To use this, you must have the actual PSR interfaces in your project.
+	 * They are not part of BabelCache, as they are not yet released or finished.
+	 *
+	 * @throws Exception                 if the adapter was not found or is not available
+	 * @param  string $adapter           the adapter key
+	 * @return Psr\Cache\CacheInterface  a fresh cache instance
+	 */
+	public function getPsrCache($adapter) {
+		$className = $this->getAdapterClass($adapter);
+		$adapter   = $this->construct($adapter, $className);
+		$cache     = new Psr\Cache($adapter);
+
+		return $cache;
+	}
+
+	/**
+	 * Construct an adapter or cache
+	 *
+	 * This method is used to instantiates adapters. It can also be used to
+	 * construct concrete overwrite caches (e.g. for the filesystem), assuming
+	 * the adapter and the matching caching implementation share the same
+	 * construction dance moves.
+	 *
+	 * @param  string $name       cache name, e.g. 'sqlite'
+	 * @param  string $className  class name, e.h. 'wv\BabelCache\Adapter\SQLite'
+	 * @return mixed              the constructed object (instance of $className)
+	 */
+	protected function construct($name, $className) {
+		switch ($name) {
+			case 'memcache':
+
+				$servers  = $this->getMemcacheAddresses();
+				$instance = new $className();
+
+				foreach ($servers as $server) {
+					$instance->addServer($server[0], $server[1], isset($server[2]) ? $server[2] : 1);
+				}
+
+				break;
+
+			case 'memcached':
+
+				$servers  = $this->getMemcacheAddresses();
+				$instance = new $className($this->getPrefix()); // care for a persistent connection
+
+				foreach ($servers as $server) {
+					$instance->addServer($server[0], $server[1], isset($server[2]) ? $server[2] : 1);
+				}
+
+				break;
+
+			case 'filesystem':
+
+				$path     = $this->getCacheDirectory();
+				$instance = new $className($path);
+
+				break;
+
+			case 'sqlite':
+
+				$conn     = $this->getSQLiteConnection();
+				$instance = new $className($conn);
+
+				break;
+
+			default:
+				$instance = new $className();
 		}
 
-		if (!empty($this->instances[$className])) {
-			return $this->instances[$className];
+		return $instance;
+	}
+
+	/**
+	 * Return the class name for an adapter
+	 *
+	 * @param  string $adapter  adapter name
+	 * @return string
+	 */
+	protected function getAdapterClass($adapter) {
+		if (!isset($this->adapters[$adapter])) {
+			throw new Exception('The selected cache adapter "'.$adapter.'" does not exist.');
 		}
+
+		$className = $this->adapters[$adapter];
 
 		// check availability
 
 		if (!call_user_func(array($className, 'isAvailable'))) {
-			throw new BabelCache_Exception('The chosen cache is not available.');
+			throw new Exception('The "'.$adapter.'" adapter is not available.');
 		}
 
-		switch ($className) {
-			case 'BabelCache_Memcache':
-
-				$servers = $this->getMemcacheAddresses();
-				$cache   = new $className();
-
-				foreach ($servers as $server) {
-					$cache->addServer($server[0], $server[1], $server[2]);
-				}
-
-				break;
-
-			case 'BabelCache_Memcached':
-
-				$servers = $this->getMemcacheAddresses();
-				// care for a persistent connection
-				$cache   = new $className($this->getPrefix());
-
-				foreach ($servers as $server) {
-					$cache->addServer($server[0], $server[1], isset($server[2]) ? $server[2] : 1);
-				}
-
-				break;
-
-			case 'BabelCache_Filesystem':
-			case 'BabelCache_Filesystem_Plain':
-
-				$path  = $this->getCacheDirectory();
-				$cache = new $className($path);
-				break;
-
-			case 'BabelCache_SQLite':
-
-				$conn  = $this->getSQLiteConnection();
-				$cache = new $className($conn);
-				break;
-
-			default:
-				$cache = new $className();
-		}
-
-		if (is_callable(array($cache, 'setPrefix'))) {
-			$prefix = $this->getPrefix();
-			$cache->setPrefix($prefix);
-		}
-
-		$this->instances[$className] = $cache;
-		return $cache;
+		return $className;
 	}
 
 	/**
 	 * Return memcache server addresses
 	 *
-	 * This method should return the memcache server address as a single
-	 * array(host, port).
+	 * This method should return a list of servers, each one being a tripel of
+	 * [host, port, weight].
 	 *
 	 * @return array  array(array(host, port, weight))
 	 */
