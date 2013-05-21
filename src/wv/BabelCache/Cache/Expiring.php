@@ -51,8 +51,8 @@ class Expiring implements CacheInterface {
 	 * @param  mixed  $ttl        timeout in seconds
 	 * @return mixed              the set value
 	 */
-	public function set($namespace, $key, $value, $timeout = null) {
-		$expire = $timeout === null ? (time() + $this->ttl) : $timeout;
+	public function set($namespace, $key, $value, $ttl = null) {
+		$expire = $ttl === null ? (time() + $this->ttl) : $ttl;
 		$data   = array(self::EXPIRE_KEY => $expire, self::VALUE_KEY => $value);
 
 		return $this->cache->set($namespace, $key, $data);
