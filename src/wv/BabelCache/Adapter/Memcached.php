@@ -8,17 +8,30 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+namespace wv\BabelCache\Adapter;
+
+use wv\BabelCache\AdapterInterface;
+use wv\BabelCache\Exception;
+use wv\BabelCache\IncrementInterface;
+use wv\BabelCache\LockingInterface;
+
 /**
  * Memcached wrapper
  *
  * This class wraps the memcached extension of PHP. Don't mix it up with the
  * memcache (without d!) extension, for which you have to use
- * BabelCache_Memcache.
+ * Adapter\Memcache.
  *
  * @see     http://www.php.net/manual/de/book.memcached.php
  * @package BabelCache.Adapter
  */
-class BabelCache_Memcached extends BabelCache_Memcache {
+class Memcached implements AdapterInterface, IncrementInterface, LockingInterface {
+	protected $memcached;
+
+	public function __construct($persistentID = null) {
+		$this->memcached = new \Memcached($persistentID);
+	}
+
 	/**
 	 * Checks whether a caching system is avilable
 	 *
@@ -28,55 +41,142 @@ class BabelCache_Memcached extends BabelCache_Memcache {
 		return class_exists('Memcached');
 	}
 
-	public function addServerEx($host, $port = 11211, $weight = 0, $persistent = true, $timeout = 1, $retryInterval = 15, $status = true, $failureCallback = null) {
-		throw new BabelCache_Exception('Extended server configuration is only available in php_memcache.');
+	/**
+	 * Get wrapped Memcache instance
+	 *
+	 * @return Memcache
+	 */
+	public function getMemcached() {
+		return $this->memcached;
 	}
 
 	public function addServer($host, $port = 11211, $weight = 0) {
+		// check if this adapter is already connected to the given server
+
 		$servers = $this->memcached->getServerList();
+
 		if (is_array($servers)) {
 			foreach ($servers as $server) {
-				if($server['host'] == $host and $server['port'] == $port) {
+				if ($server['host'] == $host && $server['port'] == $port) {
 					return true;
 				}
 			}
 		}
+
+		// add server connection
+
 		if (!$this->memcached->addServer($host, $port, $weight)) {
-			throw new BabelCache_Exception('Could not connect to Memcached @ '.$host.':'.$port.'!');
+			throw new Exception('Could not connect to memcached daemon @ '.$host.':'.$port.'!');
 		}
 	}
 
 	public function getMemcachedVersion() {
 		$result = $this->memcached->getVersion();
+
 		return empty($result) ? false : reset($result);
 	}
 
 	public function getStats() {
 		$result = $this->memcached->getStats();
+
 		return empty($result) ? false : reset($result);
 	}
 
-	public function __construct($persistent_id = null) {
-		$this->memcached = new Memcached($persistent_id);
-	}
-
-	protected function _get($key, &$found) {
+	/**
+	 * Gets a value out of the cache
+	 *
+	 * This method will try to read the value from the cache. If it's not found,
+	 * $default will be returned.
+	 *
+	 * @param  string  $key    the object key
+	 * @param  boolean $found  will be set to true or false when the method is finished
+	 * @return mixed           the found value or null
+	 */
+	public function get($key, $found = null) {
 		$value = $this->memcached->get($key);
-		$found = $this->memcached->getResultCode() != Memcached::RES_NOTFOUND;
+		$found = $this->memcached->getResultCode() != \Memcached::RES_NOTFOUND;
 
 		return $value;
 	}
 
-	protected function _setRaw($key, $value, $expiration) {
-		return $this->memcached->set($key, $value, $expiration);
+	/**
+	 * Sets a value
+	 *
+	 * This method will put a value into the cache. If it already exists, it
+	 * will be overwritten.
+	 *
+	 * @param  string $key    the object key
+	 * @param  mixed  $value  the value to store
+	 * @return boolean        true on success, else false
+	 */
+	public function set($key, $value, $ttl = 0) {
+		return $this->memcached->set($key, $value, $ttl);
 	}
 
-	protected function _set($key, $value, $expiration) {
-		return $this->memcached->set($key, $value, $expiration);
+	/**
+	 * Removes a single value from the cache
+	 *
+	 * @param  string $key  the object key
+	 * @return boolean      true if the value was deleted, else false
+	 */
+	public function remove($key) {
+		return $this->memcached->delete($key);
 	}
 
-	protected function _isset($key) {
+	/**
+	 * Checks whether a value exists
+	 *
+	 * @param  string $key  the object key
+	 * @return boolean      true if the value exists, else false
+	 */
+	public function exists($key) {
 		$this->memcached->get($key);
-		return $this->memcached->getResultCode() != Memcached::RES_NOTFOUND;
+
+		return $this->memcached->getResultCode() != \Memcached::RES_NOTFOUND;
+	}
+
+	/**
+	 * Removes all values
+	 *
+	 * @return boolean  true if the flush was successful, else false
+	 */
+	public function clear() {
+		return $this->memcached->flush();
+	}
+
+	/**
+	 * Increment a value
+	 *
+	 * This performs an atomic increment operation on the given key.
+	 *
+	 * @param  string $key  the key
+	 * @return int          the value after it has been incremented or false if the operation failed
+	 */
+	public function increment($key) {
+		return $this->memcached->increment($key, 1, 0, 0xFFFFFFFF);
+	}
+
+	/**
+	 * Locks a key
+	 *
+	 * This method will create a lock for a specific key.
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the lock was aquired, else false
+	 */
+	public function lock($key) {
+		return $this->memcached->add('lock:'.$key, 1);
+	}
+
+	/**
+	 * Releases a lock
+	 *
+	 * This method will remove a lock for a specific key.
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the lock was released or there was no lock, else false
+	 */
+	public function unlock($key) {
+		return $this->memcached->delete('lock:'.$key);
 	}
 }

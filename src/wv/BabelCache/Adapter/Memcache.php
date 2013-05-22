@@ -19,12 +19,12 @@ use wv\BabelCache\LockingInterface;
  * Memcache wrapper
  *
  * This class wraps the memcache extension of PHP. Don't mix it up with the
- * memcached (with d!) extension, for which you have to use BabelCache_Memcached.
+ * memcached (with d!) extension, for which you have to use Adapter\Memcached.
  *
  * @see     http://www.php.net/manual/de/book.memcache.php
  * @package BabelCache.Adapter
  */
-class Memcache implements AdapterInterface, IncrementInterface {
+class Memcache implements AdapterInterface, IncrementInterface, LockingInterface {
 	protected $memcached = null;  ///< Memcache  the current Memcache instance
 
 	public function __construct() {
@@ -130,6 +130,15 @@ class Memcache implements AdapterInterface, IncrementInterface {
 	}
 
 	/**
+	 * Removes all values
+	 *
+	 * @return boolean  true if the flush was successful, else false
+	 */
+	public function clear() {
+		return $this->memcached->flush();
+	}
+
+	/**
 	 * Increment a value
 	 *
 	 * This performs an atomic increment operation on the given key.
@@ -139,5 +148,29 @@ class Memcache implements AdapterInterface, IncrementInterface {
 	 */
 	public function increment($key) {
 		return $this->memcached->increment($key);
+	}
+
+	/**
+	 * Locks a key
+	 *
+	 * This method will create a lock for a specific key.
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the lock was aquired, else false
+	 */
+	public function lock($key) {
+		return $this->memcached->add('lock:'.$key, 1);
+	}
+
+	/**
+	 * Releases a lock
+	 *
+	 * This method will remove a lock for a specific key.
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the lock was released or there was no lock, else false
+	 */
+	public function unlock($key) {
+		return $this->memcached->delete('lock:'.$key);
 	}
 }
