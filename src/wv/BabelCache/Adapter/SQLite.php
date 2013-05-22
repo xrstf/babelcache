@@ -8,6 +8,13 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+namespace wv\BabelCache\Adapter;
+
+use PDO;
+use wv\BabelCache\AdapterInterface;
+use wv\BabelCache\Exception;
+use wv\BabelCache\LockingInterface;
+
 /**
  * SQLite Cache
  *
@@ -18,7 +25,7 @@
  *
  * @package BabelCache.Adapter
  */
-class BabelCache_SQLite extends BabelCache implements BabelCache_Interface {
+class SQLite implements AdapterInterface, LockingInterface {
 	protected $pdo   = null;    ///< PDO    database connection
 	protected $stmts = array(); ///< array  list of prepared statements
 
@@ -30,15 +37,28 @@ class BabelCache_SQLite extends BabelCache implements BabelCache_Interface {
 	public function __construct(PDO $connection) {
 		$this->pdo = $connection;
 
-		$stmt   = $this->pdo->query('SELECT * FROM sqlite_master WHERE type = "table" AND name = "babelcache"');
+		$stmt   = $this->pdo->query('SELECT * FROM sqlite_master WHERE type = "table" AND name = "babelcache_adapter"');
 		$tables = $stmt->fetchAll();
 
 		if (empty($tables)) {
-			$sql = 'CREATE TABLE "babelcache" ("namespace" VARCHAR(255), "keyhash" VARCHAR(40), "payload" BLOB, PRIMARY KEY ("namespace", "keyhash"))';
+			$sql = 'CREATE TABLE "babelcache_adapter" ("keyhash" VARCHAR(40), "payload" BLOB, PRIMARY KEY ("keyhash"))';
 			$this->pdo->exec($sql);
 		}
 
 		$stmt->closeCursor();
+	}
+
+	/**
+	 * Checks whether a caching system is avilable
+	 *
+	 * This method will be called before an instance is created. It is supposed
+	 * to check for the required functions and whether user data caching is
+	 * enabled.
+	 *
+	 * @return boolean  true if the cache can be used, else false
+	 */
+	public static function isAvailable() {
+		return in_array('sqlite', PDO::getAvailableDrivers());
 	}
 
 	/**
@@ -54,91 +74,21 @@ class BabelCache_SQLite extends BabelCache implements BabelCache_Interface {
 		));
 	}
 
-	public static function isAvailable() {
-		return in_array('sqlite2', PDO::getAvailableDrivers());
-	}
-
-	protected function getStatement($key) {
-		$where   = '"namespace" = :namespace AND "keyhash" = :hash';
-		$queries = array(
-			'insert'  => 'INSERT OR IGNORE INTO "babelcache" ("namespace", "keyhash", "payload") VALUES (:namespace,:hash,:payload)',
-			'replace' => 'INSERT OR REPLACE INTO "babelcache" ("namespace", "keyhash", "payload") VALUES (:namespace,:hash,:payload)',
-			'select'  => 'SELECT "payload" FROM "babelcache" WHERE '.$where,
-			'delete'  => 'DELETE FROM "babelcache" WHERE '.$where,
-			'flush'   => 'DELETE FROM "babelcache" WHERE "namespace" = :namespace',
-			'flushr'  => 'DELETE FROM "babelcache" WHERE "namespace" = :namespace OR "namespace" LIKE :likens',
-		);
-
-		if (!isset($this->stmts[$key])) {
-			if (!isset($queries[$key])) {
-				throw new BabelCache_Exception('Cannot find query for key '.$key.'.');
-			}
-
-			$this->stmts[$key] = $this->pdo->prepare($queries[$key]);
-		}
-
-		return $this->stmts[$key];
-	}
-
-	public function lock($namespace, $key, $duration = 1) {
-		$stmt = $this->getStatement('insert');
-		$stmt->execute(array('namespace' => $namespace, 'hash' => 'lock:'.sha1($key), 'payload' => ''));
-		$stmt->closeCursor();
-
-		return $stmt->rowCount() > 0;
-	}
-
-	public function unlock($namespace, $key) {
-		$stmt = $this->getStatement('delete');
-		$stmt->execute(array('namespace' => $namespace, 'hash' => 'lock:'.sha1($key)));
-		$stmt->closeCursor();
-
-		return $stmt->rowCount() > 0;
-	}
-
-	public function isLocked($namespace, $key) {
-		$lock = 'lock:'.sha1($key);
-		$stmt = $this->getStatement('select');
-		$stmt->execute(array('namespace' => $namespace, 'hash' => $lock));
-
-		$row = $stmt->fetch(PDO::FETCH_ASSOC);
-		$stmt->closeCursor();
-
-		// lock already exists
-		return !empty($row);
-	}
-
-	public function waitForObject($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 500) {
-		$start          = microtime(true);
-		$waited         = 0;
-		$checkInterval *= 1000;
-
-		while ($waited < $maxWaitTime && $this->isLocked($namespace, $key)) {
-			usleep($checkInterval);
-			$waited = microtime(true) - $start;
-		}
-
-		if (!$this->isLocked($namespace, $key)) {
-			return $this->get($namespace, $key, $default);
-		}
-
-		return $default;
-	}
-
-	public function set($namespace, $key, $value) {
-		$stmt    = $this->getStatement('replace');
-		$payload = base64_encode(serialize($value));
-
-		// update/insert data
-		$stmt->execute(array('namespace' => $namespace, 'hash' => sha1($key), 'payload' => $payload));
-		$stmt->closeCursor();
-
-		return $value;
-	}
-
-	public function get($namespace, $key, $default = null, &$found = null) {
+	/**
+	 * Gets a value out of the cache
+	 *
+	 * This method will try to read the value from the cache. If it's not found,
+	 * $default will be returned.
+	 *
+	 * @param  string  $key    the object key
+	 * @param  boolean $found  will be set to true or false when the method is finished
+	 * @return mixed           the found value or null
+	 */
+	public function get($key, &$found = null) {
+		$found = false;
 		$stmt  = $this->getStatement('select');
-		$stmt->execute(array('namespace' => $namespace, 'hash' => sha1($key)));
+
+		$stmt->execute(array('hash' => sha1($key)));
 
 		$row = $stmt->fetch(PDO::FETCH_ASSOC);
 		$stmt->closeCursor();
@@ -148,9 +98,36 @@ class BabelCache_SQLite extends BabelCache implements BabelCache_Interface {
 		return $found ? unserialize(base64_decode($row['payload'])) : false;
 	}
 
-	public function exists($namespace, $key) {
+	/**
+	 * Sets a value
+	 *
+	 * This method will put a value into the cache. If it already exists, it
+	 * will be overwritten.
+	 *
+	 * @param  string $key    the object key
+	 * @param  mixed  $value  the value to store
+	 * @return mixed          the set value
+	 */
+	public function set($key, $value) {
+		$stmt    = $this->getStatement('replace');
+		$payload = base64_encode(serialize($value));
+
+		// update/insert data
+		$stmt->execute(array('hash' => sha1($key), 'payload' => $payload));
+		$stmt->closeCursor();
+
+		return $value;
+	}
+
+	/**
+	 * Checks whether a value exists
+	 *
+	 * @param  string $key  the object key
+	 * @return boolean      true if the value exists, else false
+	 */
+	public function exists($key) {
 		$stmt = $this->getStatement('select');
-		$stmt->execute(array('namespace' => $namespace, 'hash' => sha1($key)));
+		$stmt->execute(array('hash' => sha1($key)));
 
 		$row = $stmt->fetch(PDO::FETCH_ASSOC);
 		$stmt->closeCursor();
@@ -158,29 +135,62 @@ class BabelCache_SQLite extends BabelCache implements BabelCache_Interface {
 		return !empty($row);
 	}
 
-	public function delete($namespace, $key) {
+	/**
+	 * Removes a single value from the cache
+	 *
+	 * @param  string $key  the object key
+	 * @return boolean      true if the value was deleted, else false
+	 */
+	public function remove($key) {
 		$stmt = $this->getStatement('delete');
-		$stmt->execute(array('namespace' => $namespace, 'hash' => sha1($key)));
+		$stmt->execute(array('hash' => sha1($key)));
 		$stmt->closeCursor();
 
 		return $stmt->rowCount() > 0;
 	}
 
-	public function flush($namespace, $recursive = false) {
-		$this->checkString($namespace, 'namespace');
-
-		$stmt = $this->getStatement($recursive ? 'flushr' : 'flush');
-		$stmt->bindValue('namespace', $namespace);
-
-		if ($recursive) {
-			$namespace = str_replace(array('\\', '%', '_'), array('\\\\', '\%', '\_'), $namespace);
-			$likens    = "$namespace.%";
-
-			$stmt->bindValue('likens', $likens);
-		}
-
+	/**
+	 * Removes all values
+	 *
+	 * @return boolean  true if the flush was successful, else false
+	 */
+	public function clear() {
+		$stmt = $this->getStatement('clear');
 		$stmt->execute();
+
 		return true;
+	}
+
+	/**
+	 * Locks a key
+	 *
+	 * This method will create a lock for a specific key.
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the lock was aquired, else false
+	 */
+	public function lock($key) {
+		$stmt = $this->getStatement('insert');
+		$stmt->execute(array('hash' => 'lock:'.sha1($key), 'payload' => ''));
+		$stmt->closeCursor();
+
+		return $stmt->rowCount() > 0;
+	}
+
+	/**
+	 * Releases a lock
+	 *
+	 * This method will remove a lock for a specific key.
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the lock was released or there was no lock, else false
+	 */
+	public function unlock($key) {
+		$stmt = $this->getStatement('delete');
+		$stmt->execute(array('hash' => 'lock:'.sha1($key)));
+		$stmt->closeCursor();
+
+		return $stmt->rowCount() > 0;
 	}
 
 	protected function begin() {
@@ -189,5 +199,26 @@ class BabelCache_SQLite extends BabelCache implements BabelCache_Interface {
 
 	protected function commit() {
 		$this->pdo->commit();
+	}
+
+	protected function getStatement($key) {
+		$where   = '"keyhash" = :hash';
+		$queries = array(
+			'insert'  => 'INSERT OR IGNORE INTO "babelcache_adapter" ("keyhash", "payload") VALUES (:hash,:payload)',
+			'replace' => 'INSERT OR REPLACE INTO "babelcache_adapter" ("keyhash", "payload") VALUES (:hash,:payload)',
+			'select'  => 'SELECT "payload" FROM "babelcache_adapter" WHERE '.$where,
+			'delete'  => 'DELETE FROM "babelcache_adapter" WHERE '.$where,
+			'clear'   => 'DELETE FROM "babelcache_adapter"',
+		);
+
+		if (!isset($this->stmts[$key])) {
+			if (!isset($queries[$key])) {
+				throw new Exception('Cannot find query for key '.$key.'.');
+			}
+
+			$this->stmts[$key] = $this->pdo->prepare($queries[$key]);
+		}
+
+		return $this->stmts[$key];
 	}
 }
