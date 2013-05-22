@@ -56,8 +56,9 @@ abstract class Factory {
 		$prefix = 'wv\BabelCache\Cache\\';
 
 		$this->overwrites = array(
-			'blackhole' => $prefix.'Blackhole',
-			'memory'    => $prefix.'Memory'
+			'blackhole'  => $prefix.'Blackhole',
+			'memory'     => $prefix.'Memory',
+			'filesystem' => $prefix.'Filesystem'
 		);
 	}
 
