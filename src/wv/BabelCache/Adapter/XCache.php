@@ -8,6 +8,11 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+namespace wv\BabelCache\Adapter;
+
+use wv\BabelCache\AdapterInterface;
+use wv\BabelCache\IncrementInterface;
+
 /**
  * XCache
  *
@@ -17,47 +22,39 @@
  * @see     http://xcache.lighttpd.net/
  * @package BabelCache.Adapter
  */
-class BabelCache_XCache extends BabelCache_Abstract {
-	public function getMaxKeyLength() {
-		return 200; // unbekannt -> Schätzwert
-	}
-
-	public function hasLocking() {
-		return false;
-	}
-
+class XCache implements AdapterInterface, IncrementInterface {
 	public static function isAvailable() {
 		// XCache will throw a warning if it is misconfigured. We don't want to see that one.
 		return function_exists('xcache_set') && @xcache_set('test', 1, 1);
 	}
 
-	protected function _getRaw($key) {
-		return xcache_get($key);
-	}
-
-	protected function _get($key, &$found) {
+	public function get($key, &$found = null) {
 		$found = xcache_isset($key);
 
-		return $found ? unserialize(xcache_get($key)) : false;
+		return $found ? unserialize(xcache_get($key)) : null;
 	}
 
-	protected function _setRaw($key, $value, $expiration) {
-		return xcache_set($key, $value, $expiration);
+	public function set($key, $value, $expiration = null) {
+		xcache_set($key, serialize($value), $expiration);
+
+		return $value;
 	}
 
-	protected function _set($key, $value, $expiration) {
-		return xcache_set($key, serialize($value), $expiration);
-	}
-
-	protected function _delete($key) {
+	public function remove($key) {
 		return xcache_unset($key);
 	}
 
-	protected function _isset($key) {
+	public function exists($key) {
 		return xcache_isset($key);
 	}
 
-	protected function _increment($key) {
-		return xcache_inc($key) !== false;
+	public function clear() {
+		xcache_clear_cache(XC_TYPE_PHP, 0);
+
+		return true;
+	}
+
+	public function increment($key) {
+		return xcache_inc($key);
 	}
 }
