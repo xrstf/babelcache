@@ -35,9 +35,7 @@ class XCache implements AdapterInterface, IncrementInterface {
 	}
 
 	public function set($key, $value, $expiration = null) {
-		xcache_set($key, serialize($value), $expiration);
-
-		return $value;
+		return xcache_set($key, serialize($value), $expiration);
 	}
 
 	public function remove($key) {
