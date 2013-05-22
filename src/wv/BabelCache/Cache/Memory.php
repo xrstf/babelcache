@@ -23,7 +23,7 @@ class Memory implements CacheInterface {
 	public function set($namespace, $key, $value) {
 		$this->data[$namespace][$key] = $value;
 
-		return true;
+		return $value;
 	}
 
 	public function get($namespace, $key, $default = null, &$found = null) {
@@ -33,7 +33,7 @@ class Memory implements CacheInterface {
 	}
 
 	public function remove($namespace, $key) {
-		$exists = $this->exists($key);
+		$exists = $this->exists($namespace, $key);
 		unset($this->data[$namespace][$key]);
 
 		return $exists;

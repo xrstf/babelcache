@@ -12,14 +12,19 @@ use wv\BabelCache\Factory;
 use wv\BabelCache\Adapter\SQLite;
 
 class TestFactory extends Factory {
+	public function __construct() {
+		parent::__construct();
+		$this->setAdapter('blackhole', null);
+	}
+
 	protected function getCacheDirectory() {
-		$dir = __DIR__.'/fscache';
+		$dir = __DIR__.'/../fscache';
 		if (!is_dir($dir)) mkdir($dir, 0777);
 
 		return $dir;
 	}
 
 	protected function getSQLiteConnection() {
-		return SQLite::connect(__DIR__.'/test.sqlite');
+		return SQLite::connect(__DIR__.'/../test.sqlite');
 	}
 }

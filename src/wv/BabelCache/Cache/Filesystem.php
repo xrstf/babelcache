@@ -12,6 +12,7 @@ namespace wv\BabelCache\Cache;
 
 use wv\BabelCache\CacheInterface;
 use wv\BabelCache\Exception;
+use wv\BabelCache\Util;
 
 /**
  * Filesystem Cache
@@ -22,6 +23,7 @@ class Filesystem implements CacheInterface {
 	protected $dataDir;   ///< string  absolute path to the cache directory
 	protected $filePerm;  ///< int     permissions to use for created files
 	protected $dirPerm;   ///< int     permissions to use for lock directories
+	protected $prefix;    ///< string  file name prefix
 
 	/**
 	 * Constructor
@@ -38,6 +40,20 @@ class Filesystem implements CacheInterface {
 		$this->dataDir  = $dataDirectory;
 		$this->filePerm = (int) $filePerm;
 		$this->dirPerm  = (int) $dirPerm;
+		$this->prefix   = '';
+	}
+
+	/**
+	 * Sets the key prefix
+	 *
+	 * The key prefix will be put in front of the generated cache key, so that
+	 * multiple installations of the same system can co-exist on the same
+	 * machine.
+	 *
+	 * @param string $prefix  the prefix to use (will be trimmed)
+	 */
+	public function setPrefix($prefix) {
+		$this->prefix = trim($prefix);
 	}
 
 	/**
@@ -146,7 +162,7 @@ class Filesystem implements CacheInterface {
 	 * @return boolean             true if the flush was successful, else false
 	 */
 	public function clear($namespace, $recursive = false) {
-		$this->checkString($namespace, 'namespace');
+		Util::checkString($namespace, 'namespace');
 
 		$namespace = $this->getDirFromNamespace($namespace);
 		$root      = $this->dataDir.'/'.$namespace;
@@ -165,8 +181,7 @@ class Filesystem implements CacheInterface {
 	 * @return boolean            true if the lock was aquired, else false
 	 */
 	public function lock($namespace, $key, $duration = 1) {
-		$key = $this->getFullKeyHelper($namespace, $key);
-		$dir = $this->dataDir.'/lock-'.sha1($key);
+		$dir = $this->getLockDir($namespace, $key);
 
 		clearstatcache();
 
@@ -183,12 +198,47 @@ class Filesystem implements CacheInterface {
 	 * @return boolean            true if the lock was released, else false
 	 */
 	public function unlock($namespace, $key) {
-		$key = $this->getFullKeyHelper($namespace, $key);
-		$dir = $this->dataDir.'/lock-'.sha1($key);
+		$dir = $this->getLockDir($namespace, $key);
 
 		clearstatcache();
 
 		return is_dir($dir) ? rmdir($dir) : true;
+	}
+
+	/**
+	 * Waits for a lock to be released
+	 *
+	 * This method will wait for a specific amount of time for the lock to be
+	 * released. For this, it constantly checks the lock (tweak the check
+	 * interval with the last parameter).
+	 *
+	 * When the maximum waiting time elapsed, the $default value will be
+	 * returned. Else the value will be read from the cache.
+	 *
+	 * @param  string $namespace      the namespace
+	 * @param  string $key            the key
+	 * @param  mixed  $default        the value to return if the lock does not get released
+	 * @param  int    $maxWaitTime    the maximum waiting time (in seconds)
+	 * @param  int    $checkInterval  the check interval (in milliseconds)
+	 * @return mixed                  the value from the cache if the lock was released, else $default
+	 */
+	public function waitForLockRelease($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 750) {
+		$dir            = $this->getLockDir($namespace, $key);
+		$start          = microtime(true);
+		$waited         = 0;
+		$checkInterval *= 1000;
+
+		while ($waited < $maxWaitTime && is_dir($dir)) {
+			usleep($checkInterval);
+			$waited = microtime(true) - $start;
+			clearstatcache();
+		}
+
+		if (!is_dir($dir)) {
+			return $this->get($namespace, $key, $default);
+		}
+
+		return $default;
 	}
 
 	/**
@@ -225,8 +275,8 @@ class Filesystem implements CacheInterface {
 	 * @return string             the full path
 	 */
 	protected function getFilename($namespace, $key) {
-		$namespace = $this->checkString($namespace, 'namespace');
-		$key       = $this->checkString($key, 'key');
+		$namespace = Util::checkString($namespace, 'namespace');
+		$key       = Util::checkString($key, 'key');
 		$dir       = $this->dataDir;
 		$hash      = md5($key);
 		$part      = $this->getDirFromNamespace($namespace);
@@ -238,6 +288,19 @@ class Filesystem implements CacheInterface {
 		}
 
 		return $dir.'/'.$part.'/'.$hash;
+	}
+
+	/**
+	 * Return the directory for locking a key
+	 *
+	 * @param  string $namespace
+	 * @param  string $key
+	 * @return string
+	 */
+	protected function getLockDir($namespace, $key) {
+		$key = $this->getFullKeyHelper($namespace, $key);
+
+		return $this->dataDir.'/lock-'.sha1($key);
 	}
 
 	/**
@@ -255,14 +318,18 @@ class Filesystem implements CacheInterface {
 		}
 
 		try {
-			$dirIterator = new RecursiveDirectoryIterator($root);
-			$recIterator = new RecursiveIteratorIterator($dirIterator, RecursiveIteratorIterator::CHILD_FIRST);
+			$dirIterator = new \RecursiveDirectoryIterator($root);
+			$recIterator = new \RecursiveIteratorIterator($dirIterator, \RecursiveIteratorIterator::CHILD_FIRST);
 			$status      = true;
 			$level       = error_reporting(0);
 
 			foreach ($recIterator as $file) {
-				if ($file->isDir()) $status &= rmdir($file);
-				elseif ($file->isFile()) $status &= unlink($file);
+				if (!$recIterator->isDot() && $file->isDir()) {
+					$status &= rmdir($file->getPathname());
+				}
+				elseif ($file->isFile()) {
+					$status &= unlink($file->getPathname());
+				}
 			}
 
 			rmdir($root);
@@ -272,9 +339,10 @@ class Filesystem implements CacheInterface {
 
 			clearstatcache();
 			error_reporting($level);
-			return $status;
+
+			return !!$status;
 		}
-		catch (UnexpectedValueException $e) {
+		catch (\UnexpectedValueException $e) {
 			return false;
 		}
 	}
@@ -288,6 +356,12 @@ class Filesystem implements CacheInterface {
 	 * @return string             the namespace with replaced dots
 	 */
 	protected function getDirFromNamespace($namespace) {
+		$namespace = trim($namespace, '.');
+
+		if ($this->prefix) {
+			$namespace = $this->prefix.'.'.$namespace;
+		}
+
 		return str_replace('.', '/', $namespace);
 	}
 

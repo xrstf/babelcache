@@ -46,6 +46,8 @@ class Cascade implements CacheInterface {
 	public function set($namespace, $key, $value) {
 		$this->primaryCache->set($namespace, $key, $value);
 		$this->secondaryCache->set($namespace, $key, $value);
+
+		return $value;
 	}
 
 	public function remove($namespace, $key) {

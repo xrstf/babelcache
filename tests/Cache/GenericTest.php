@@ -8,24 +8,19 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-class CacheTest extends PHPUnit_Framework_TestCase {
-	protected $caches = array(
-		'XCache',
-		'APC',
-		'Memcache',
-		'Memcached',
-		'eAccelerator',
-		'ZendServer',
-		'Memory',
-		'Filesystem',
-		'Filesystem_Plain',
-		'SQLite'
-	);
+class Cache_GenericTest extends PHPUnit_Framework_TestCase {
+	protected static $factory;
+
+	public static function setUpBeforeClass() {
+		self::$factory = new TestFactory();
+	}
 
 	protected function tearDown() {
-		foreach ($this->caches as $cache) {
-			$cache = $this->getCache($cache, false);
-			if ($cache) $cache->flush('t', true);
+		foreach (self::$factory->getAdapters() as $adapter => $className) {
+			if ($className === null) continue;
+
+			$cache = $this->getCache($adapter, false);
+			if ($cache) $cache->clear('t', true);
 		}
 	}
 
@@ -72,10 +67,10 @@ class CacheTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @dataProvider flushProvider
+	 * @dataProvider clearProvider
 	 * @depends      testSetGet
 	 */
-	public function testFlush($cache, $flushLevel, $exists1, $exists2, $exists3) {
+	public function testClear($cache, $clearLevel, $exists1, $exists2, $exists3) {
 		$cache = $this->getCache($cache);
 		$l1    = 't.a'.uniqid();
 		$l2    = $l1.'.b'.uniqid();
@@ -85,13 +80,13 @@ class CacheTest extends PHPUnit_Framework_TestCase {
 		$cache->set($l2, 'foo', 'bar');
 		$cache->set($l3, 'foo', null);
 
-		$cache->flush($$flushLevel, true);
+		$this->assertTrue($cache->clear($$clearLevel, true));
 		$this->assertSame($exists1, $cache->exists($l1, 'foo'));
 		$this->assertSame($exists2, $cache->exists($l2, 'foo'));
 		$this->assertSame($exists3, $cache->exists($l3, 'foo'));
 	}
 
-	public function flushProvider() {
+	public function clearProvider() {
 		return $this->buildDataSet(array(
 			array('l3', true,  true,  false),
 			array('l2', true,  false, false),
@@ -130,12 +125,12 @@ class CacheTest extends PHPUnit_Framework_TestCase {
 	 * @dataProvider cacheProvider
 	 * @depends      testExists
 	 */
-	public function testDelete($cache) {
+	public function testRemove($cache) {
 		$cache = $this->getCache($cache);
-
 		$cache->set('t.foo', 'key', 'abc');
-		$cache->delete('t.foo', 'key');
 
+		$this->assertTrue($cache->remove('t.foo', 'key'));
+		$this->assertFalse($cache->remove('t.foo', 'key'));
 		$this->assertFalse($cache->exists('t.foo', 'key'));
 	}
 
@@ -153,11 +148,11 @@ class CacheTest extends PHPUnit_Framework_TestCase {
 
 		try {
 			$factory = new TestFactory();
-			$cache   = $factory->getCache('BabelCache_'.$cache);
+			$cache   = $factory->getCache($cache);
 
 			return $cache;
 		}
-		catch (BabelCache_Exception $e) {
+		catch (wv\BabelCache\Exception $e) {
 			$unavailable[] = $cache;
 
 			if ($mark) {
@@ -169,15 +164,18 @@ class CacheTest extends PHPUnit_Framework_TestCase {
 	}
 
 	protected function buildDataSet($sets) {
-		$result = array();
+		$result  = array();
+		$factory = new TestFactory(); // setUpBeforeClass has not yet been called
 
-		foreach ($this->caches as $cache) {
+		foreach ($factory->getAdapters() as $adapter => $className) {
+			if ($className === null) continue;
+
 			if ($sets === null) {
-				$result[] = array($cache);
+				$result[] = array($adapter);
 			}
 			else {
 				foreach ($sets as $set) {
-					array_unshift($set, $cache);
+					array_unshift($set, $adapter);
 					$result[] = $set;
 				}
 			}

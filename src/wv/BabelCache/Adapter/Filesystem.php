@@ -39,6 +39,7 @@ class Filesystem implements AdapterInterface, LockingInterface {
 		$this->dataDir  = $dataDirectory;
 		$this->filePerm = (int) $filePerm;
 		$this->dirPerm  = (int) $dirPerm;
+		$this->prefix   = '';
 	}
 
 	/**
@@ -64,12 +65,12 @@ class Filesystem implements AdapterInterface, LockingInterface {
 	 * @param  boolean $found  will be set to true or false when the method is finished
 	 * @return mixed           the found value or null
 	 */
-	public function get($key, $default = null, &$found = null) {
+	public function get($key, &$found = null) {
 		$found = false;
 		$file  = $this->getFilename($key);
 
 		if (!file_exists($file)) {
-			return $default;
+			return null;
 		}
 
 		// open the file
@@ -78,13 +79,13 @@ class Filesystem implements AdapterInterface, LockingInterface {
 		// old filestats?
 		if (!$handle) {
 			clearstatcache();
-			return $default;
+			return null;
 		}
 
 		// try to lock the file
 		if (!flock($handle, LOCK_SH)) {
 			fclose($handle);
-			return $default;
+			return null;
 		}
 
 		// read it
@@ -158,7 +159,7 @@ class Filesystem implements AdapterInterface, LockingInterface {
 				}
 
 				// try to remove locks as well
-				elseif ($file->isDir() && !$file->isDot()) {
+				elseif ($file->isDir() && !$iterator->isDot()) {
 					$status &= rmdir($file->getPathname());
 				}
 			}

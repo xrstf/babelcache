@@ -15,8 +15,8 @@ class FactoryTest extends PHPUnit_Framework_TestCase {
 	public function testBuildCache($cacheName, $forceGeneric, $expectedClass) {
 		$factory = new TestFactory();
 
-		// disable the blackhole overwrite
-		$factory->setOverwrite('blackhole', null);
+		// disable the filesystem overwrite
+		$factory->setOverwrite('filesystem', null);
 
 		$cache = $factory->getCache($cacheName, $forceGeneric);
 		$this->assertInstanceOf($expectedClass, $cache);
@@ -24,9 +24,9 @@ class FactoryTest extends PHPUnit_Framework_TestCase {
 
 	public function cacheNameProvider() {
 		return array(
-			array('blackhole', false, 'wv\BabelCache\Cache\Generic'),
-			array('memory',    false, 'wv\BabelCache\Cache\Memory'),
-			array('memory',    true,  'wv\BabelCache\Cache\Generic')
+			array('filesystem', false, 'wv\BabelCache\Cache\Generic'),
+			array('memory',     false, 'wv\BabelCache\Cache\Memory'),
+			array('memory',     true,  'wv\BabelCache\Cache\Generic')
 		);
 	}
 
