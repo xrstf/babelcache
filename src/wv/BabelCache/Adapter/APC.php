@@ -37,6 +37,15 @@ class APC implements AdapterInterface, LockingInterface {
 		$this->hasExistsMethod = function_exists('apc_exists');
 	}
 
+	/**
+	 * Checks whether a caching system is avilable
+	 *
+	 * This method will be called before an instance is created. It is supposed
+	 * to check for the required functions and whether user data caching is
+	 * enabled.
+	 *
+	 * @return boolean  true if the cache can be used, else false
+	 */
 	public static function isAvailable() {
 		static $avail = null;
 
@@ -53,12 +62,32 @@ class APC implements AdapterInterface, LockingInterface {
 		return $avail;
 	}
 
+	/**
+	 * Gets a value out of the cache
+	 *
+	 * This method will try to read the value from the cache. If it's not found,
+	 * $default will be returned.
+	 *
+	 * @param  string  $key    the object key
+	 * @param  boolean $found  will be set to true or false when the method is finished
+	 * @return mixed           the found value or null
+	 */
 	public function get($key, &$found = null) {
 		$value = apc_fetch($key, $found);
 
 		return $found ? unserialize($value) : null;
 	}
 
+	/**
+	 * Sets a value
+	 *
+	 * This method will put a value into the cache. If it already exists, it
+	 * will be overwritten.
+	 *
+	 * @param  string $key    the object key
+	 * @param  mixed  $value  the value to store
+	 * @return boolean        true on success, else false
+	 */
 	public function set($key, $value, $expiration = null) {
 		// explicit delete since APC does not allow multiple store() calls during the same request
 		$this->delete($key);
@@ -66,10 +95,22 @@ class APC implements AdapterInterface, LockingInterface {
 		return apc_store($key, serialize($value), $expiration);
 	}
 
+	/**
+	 * Removes a single value from the cache
+	 *
+	 * @param  string $key  the object key
+	 * @return boolean      true if the value was deleted, else false
+	 */
 	public function remove($key) {
 		return apc_delete($key);
 	}
 
+	/**
+	 * Checks whether a value exists
+	 *
+	 * @param  string $key  the object key
+	 * @return boolean      true if the value exists, else false
+	 */
 	public function exists($key) {
 		if ($this->hasExistsMethod) {
 			return apc_exists($key);
@@ -80,6 +121,11 @@ class APC implements AdapterInterface, LockingInterface {
 		return $found;
 	}
 
+	/**
+	 * Removes all values
+	 *
+	 * @return boolean  true if the flush was successful, else false
+	 */
 	public function clear() {
 		return apc_clear_cache('user');
 	}

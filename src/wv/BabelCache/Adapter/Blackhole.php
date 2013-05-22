@@ -24,36 +24,99 @@ use wv\BabelCache\LockingInterface;
  * @package BabelCache.Adapter
  */
 class Blackhole implements AdapterInterface, LockingInterface {
+	/**
+	 * Checks whether a caching system is avilable
+	 *
+	 * This method will be called before an instance is created. It is supposed
+	 * to check for the required functions and whether user data caching is
+	 * enabled.
+	 *
+	 * @return boolean  true if the cache can be used, else false
+	 */
 	public static function isAvailable() {
 		return true;
 	}
 
+	/**
+	 * Gets a value out of the cache
+	 *
+	 * This method will try to read the value from the cache. If it's not found,
+	 * $default will be returned.
+	 *
+	 * @param  string  $key    the object key
+	 * @param  boolean $found  will be set to true or false when the method is finished
+	 * @return mixed           the found value or null
+	 */
 	public function get($key, &$found = null) {
 		$found = false;
 
 		return null;
 	}
 
+	/**
+	 * Sets a value
+	 *
+	 * This method will put a value into the cache. If it already exists, it
+	 * will be overwritten.
+	 *
+	 * @param  string $key    the object key
+	 * @param  mixed  $value  the value to store
+	 * @return boolean        true on success, else false
+	 */
 	public function set($key, $value) {
 		return true;
 	}
 
+	/**
+	 * Removes a single value from the cache
+	 *
+	 * @param  string $key  the object key
+	 * @return boolean      true if the value was deleted, else false
+	 */
 	public function remove($key) {
 		return true;
 	}
 
+	/**
+	 * Checks whether a value exists
+	 *
+	 * @param  string $key  the object key
+	 * @return boolean      true if the value exists, else false
+	 */
 	public function exists($key) {
 		return false;
 	}
 
+	/**
+	 * Removes all values
+	 *
+	 * @return boolean  true if the flush was successful, else false
+	 */
 	public function clear() {
 		return true;
 	}
 
+	/**
+	 * Locks a key
+	 *
+	 * This method will create a lock for a specific key.
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the lock was aquired, else false
+	 */
 	public function lock($key) {
 		return true;
 	}
 
+
+	/**
+	 * Releases a lock
+	 *
+	 * This method will remove a lock for a specific key.
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the lock was released or there was no lock, else false
+	 */
 	public function unlock($key) {
 		return true;
 	}

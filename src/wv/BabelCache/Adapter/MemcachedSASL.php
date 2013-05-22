@@ -52,8 +52,19 @@ class MemcachedSASL implements AdapterInterface, IncrementInterface, LockingInte
 	const OPCODE_SASL_LIST_MECHS = 0x20;
 	const OPCODE_SASL_AUTH       = 0x21;
 
+	/**
+	 * connection to the memcached daemon
+	 *
+	 * @var resource
+	 */
 	protected $socket;
 
+	/**
+	 * Constructor
+	 *
+	 * @param string $host  host name to connect to
+	 * @param int    $port  port to use
+	 */
 	public function __construct($host, $port = 11211) {
 		$errNo  = null;
 		$errMsg = null;
@@ -69,12 +80,26 @@ class MemcachedSASL implements AdapterInterface, IncrementInterface, LockingInte
 	/**
 	 * Checks whether a caching system is avilable
 	 *
-	 * @return boolean  always true
+	 * This method will be called before an instance is created. It is supposed
+	 * to check for the required functions and whether user data caching is
+	 * enabled.
+	 *
+	 * @return boolean  true if the cache can be used, else false
 	 */
 	public static function isAvailable() {
 		return true;
 	}
 
+	/**
+	 * Gets a value out of the cache
+	 *
+	 * This method will try to read the value from the cache. If it's not found,
+	 * $default will be returned.
+	 *
+	 * @param  string  $key    the object key
+	 * @param  boolean $found  will be set to true or false when the method is finished
+	 * @return mixed           the found value or null
+	 */
 	public function get($key, &$found = null) {
 		$response = $this->send(self::OPCODE_GET, array('key' => $key));
 		$found    = $response['status'] == 0;
@@ -89,6 +114,16 @@ class MemcachedSASL implements AdapterInterface, IncrementInterface, LockingInte
 		return $this->decodeValue($data['body'], $data['extra']);
 	}
 
+	/**
+	 * Sets a value
+	 *
+	 * This method will put a value into the cache. If it already exists, it
+	 * will be overwritten.
+	 *
+	 * @param  string $key    the object key
+	 * @param  mixed  $value  the value to store
+	 * @return boolean        true on success, else false
+	 */
 	public function set($key, $value, $ttl = null) {
 		list($value, $flags) = $this->encodeValue($value, 0);
 
@@ -102,24 +137,49 @@ class MemcachedSASL implements AdapterInterface, IncrementInterface, LockingInte
 		return $this->isSuccess($response);
 	}
 
+	/**
+	 * Removes a single value from the cache
+	 *
+	 * @param  string $key  the object key
+	 * @return boolean      true if the value was deleted, else false
+	 */
 	public function remove($key) {
 		$response = $this->send(self::OPCODE_DELETE, array('key' => $key));
 
 		return $this->isSuccess($response);
 	}
 
+	/**
+	 * Checks whether a value exists
+	 *
+	 * @param  string $key  the object key
+	 * @return boolean      true if the value exists, else false
+	 */
 	public function exists($key) {
 		$response = $this->send(self::OPCODE_GET, array('key' => $key));
 
 		return $this->isSuccess($response);
 	}
 
+	/**
+	 * Removes all values
+	 *
+	 * @return boolean  true if the flush was successful, else false
+	 */
 	public function clear() {
 		$response = $this->send(self::OPCODE_FLUSH);
 
 		return $this->isSuccess($response);
 	}
 
+	/**
+	 * Increment a value
+	 *
+	 * This performs an atomic increment operation on the given key.
+	 *
+	 * @param  string $key  the key
+	 * @return int          the value after it has been incremented or false if the operation failed
+	 */
 	public function increment($key) {
 		$extra = pack('N2N2N',
 			/*     offset */ 0, 1,
@@ -135,6 +195,14 @@ class MemcachedSASL implements AdapterInterface, IncrementInterface, LockingInte
 		return $this->isSuccess($response);
 	}
 
+	/**
+	 * Locks a key
+	 *
+	 * This method will create a lock for a specific key.
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the lock was aquired, else false
+	 */
 	public function lock($key) {
 		$response = $this->send(self::OPCODE_ADD, array(
 			'key'   => 'lock:'.$key,
@@ -144,6 +212,14 @@ class MemcachedSASL implements AdapterInterface, IncrementInterface, LockingInte
 		return $this->isSuccess($response);
 	}
 
+	/**
+	 * Releases a lock
+	 *
+	 * This method will remove a lock for a specific key.
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the lock was released or there was no lock, else false
+	 */
 	public function unlock($key) {
 		return $this->remove('lock:'.$key);
 	}

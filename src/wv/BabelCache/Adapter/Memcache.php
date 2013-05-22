@@ -8,6 +8,13 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+namespace wv\BabelCache\Adapter;
+
+use wv\BabelCache\AdapterInterface;
+use wv\BabelCache\Exception;
+use wv\BabelCache\IncrementInterface;
+use wv\BabelCache\LockingInterface;
+
 /**
  * Memcache wrapper
  *
@@ -17,13 +24,31 @@
  * @see     http://www.php.net/manual/de/book.memcache.php
  * @package BabelCache.Adapter
  */
-class BabelCache_Memcache extends BabelCache_Abstract {
+class Memcache implements AdapterInterface, IncrementInterface {
 	protected $memcached = null;  ///< Memcache  the current Memcache instance
 
 	public function __construct() {
-		$this->memcached = new Memcache();
+		$this->memcached = new \Memcache();
 	}
 
+	/**
+	 * Checks whether a caching system is avilable
+	 *
+	 * This method will be called before an instance is created. It is supposed
+	 * to check for the required functions and whether user data caching is
+	 * enabled.
+	 *
+	 * @return boolean  true if the cache can be used, else false
+	 */
+	public static function isAvailable() {
+		return class_exists('Memcache');
+	}
+
+	/**
+	 * Get wrapped Memcache instance
+	 *
+	 * @return Memcache
+	 */
 	public function getMemcached() {
 		return $this->memcached;
 	}
@@ -37,7 +62,7 @@ class BabelCache_Memcache extends BabelCache_Abstract {
 	 */
 	public function addServer($host, $port = 11211, $weight = 0) {
 		if (!$this->memcached->addServer($host, $port, true, $weight)) {
-			throw new BabelCache_Exception('Could not connect to Memcache @ '.$host.':'.$port.'!');
+			throw new Exception('Could not connect to Memcache @ '.$host.':'.$port.'!');
 		}
 	}
 
@@ -53,51 +78,66 @@ class BabelCache_Memcache extends BabelCache_Abstract {
 		return $this->memcached->getStats();
 	}
 
-	public function getMaxKeyLength() {
-		return 200; // unbekannt -> Schätzwert
-	}
-
-	public function hasLocking() {
-		return false;
-	}
-
 	/**
-	 * Checks whether a caching system is avilable
+	 * Gets a value out of the cache
 	 *
-	 * @return boolean  true if php_memcache is available, else false
+	 * This method will try to read the value from the cache. If it's not found,
+	 * $default will be returned.
+	 *
+	 * @param  string  $key    the object key
+	 * @param  boolean $found  will be set to true or false when the method is finished
+	 * @return mixed           the found value or null
 	 */
-	public static function isAvailable() {
-		return class_exists('Memcache');
-	}
-
-	protected function _getRaw($key) {
-		return $this->memcached->get($key);
-	}
-
-	protected function _get($key, &$found) {
+	public function get($key, &$found = null) {
 		$value = $this->memcached->get($key);
 		$found = $value !== false;
 
 		return $found ? unserialize($value) : $value;
 	}
 
-	protected function _setRaw($key, $value, $expiration) {
-		return $this->memcached->set($key, $value, 0, $expiration);
+	/**
+	 * Sets a value
+	 *
+	 * This method will put a value into the cache. If it already exists, it
+	 * will be overwritten.
+	 *
+	 * @param  string $key    the object key
+	 * @param  mixed  $value  the value to store
+	 * @return boolean        true on success, else false
+	 */
+	public function set($key, $value, $ttl = 0) {
+		return $this->memcached->set($key, serialize($value), 0, $ttl);
 	}
 
-	protected function _set($key, $value, $expiration) {
-		return $this->memcached->set($key, serialize($value), 0, $expiration);
-	}
-
-	protected function _delete($key) {
+	/**
+	 * Removes a single value from the cache
+	 *
+	 * @param  string $key  the object key
+	 * @return boolean      true if the value was deleted, else false
+	 */
+	public function remove($key) {
 		return $this->memcached->delete($key);
 	}
 
-	protected function _isset($key) {
+	/**
+	 * Checks whether a value exists
+	 *
+	 * @param  string $key  the object key
+	 * @return boolean      true if the value exists, else false
+	 */
+	public function exists($key) {
 		return $this->memcached->get($key) !== false;
 	}
 
-	protected function _increment($key) {
-		return $this->memcached->increment($key) !== false;
+	/**
+	 * Increment a value
+	 *
+	 * This performs an atomic increment operation on the given key.
+	 *
+	 * @param  string $key  the key
+	 * @return int          the value after it has been incremented or false if the operation failed
+	 */
+	public function increment($key) {
+		return $this->memcached->increment($key);
 	}
 }
