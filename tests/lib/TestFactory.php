@@ -8,18 +8,18 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-class TestFactory extends BabelCache_Factory {
+use wv\BabelCache\Factory;
+use wv\BabelCache\Adapter\SQLite;
+
+class TestFactory extends Factory {
 	protected function getCacheDirectory() {
-		$dir = dirname(__FILE__).'/fscache';
+		$dir = __DIR__.'/fscache';
 		if (!is_dir($dir)) mkdir($dir, 0777);
 
 		return $dir;
 	}
 
 	protected function getSQLiteConnection() {
-		$db   = dirname(__FILE__).'/test.sqlite';
-		$conn = BabelCache_SQLite::connect($db);
-
-		return $conn;
+		return SQLite::connect(__DIR__.'/test.sqlite');
 	}
 }

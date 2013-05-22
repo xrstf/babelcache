@@ -8,13 +8,15 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-class BabelCacheTest extends PHPUnit_Framework_TestCase {
+use wv\BabelCache\Util;
+
+class UtilTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * @dataProvider generateKeyProvider
 	 */
 	public function testGenerateKey($value, $unexpected) {
-		$key           = BabelCache::generateKey($value);
-		$unexpectedKey = BabelCache::generateKey($unexpected);
+		$key           = Util::generateKey($value);
+		$unexpectedKey = Util::generateKey($unexpected);
 
 		$this->assertInternalType('string', $key);
 		$this->assertNotSame('', $key, 'keys should never be empty');
@@ -46,10 +48,7 @@ class BabelCacheTest extends PHPUnit_Framework_TestCase {
 	 * @dataProvider validStringsProvider
 	 */
 	public function testValidStrings($string) {
-		$cache  = new BabelCache_Blackhole();
-		$method = $this->getMethod($cache, 'checkString');
-
-		$this->assertSame($string, $method->invokeArgs($cache, array($string, 'str')));
+		$this->assertSame($string, Util::checkString($string, 'str'));
 	}
 
 	public function validStringsProvider() {
@@ -64,13 +63,10 @@ class BabelCacheTest extends PHPUnit_Framework_TestCase {
 
 	/**
 	 * @dataProvider      invalidStringsProvider
-	 * @expectedException BabelCache_Exception
+	 * @expectedException wv\BabelCache\Exception
 	 */
 	public function testInvalidStrings($string) {
-		$cache  = new BabelCache_Blackhole();
-		$method = $this->getMethod($cache, 'checkString');
-
-		$method->invokeArgs($cache, array($string, 'str'));
+		Util::checkString($string, 'str');
 	}
 
 	public function invalidStringsProvider() {
@@ -97,11 +93,7 @@ class BabelCacheTest extends PHPUnit_Framework_TestCase {
 	 * @dataProvider getFullKeyProvider
 	 */
 	public function testGetFullKey($namespace, $key, $expected) {
-		$cache  = new BabelCache_Blackhole();
-		$method = $this->getMethod($cache, 'getFullKeyHelper');
-		$result = $method->invokeArgs($cache, array($namespace, $key));
-
-		$this->assertSame($expected, $result);
+		$this->assertSame($expected, Util::getFullKeyHelper($namespace, $key));
 	}
 
 	public function getFullKeyProvider() {
@@ -110,14 +102,5 @@ class BabelCacheTest extends PHPUnit_Framework_TestCase {
 			array('foo', 'bar', 'foo$bar'),
 			array('foo.bar', 'bar', 'foo.bar$bar')
 		);
-	}
-
-	protected function getMethod($class, $name) {
-		$class  = new ReflectionClass(is_string($class) ? $class : get_class($class));
-		$method = $class->getMethod($name);
-
-		$method->setAccessible(true);
-
-		return $method;
 	}
 }

@@ -79,6 +79,6 @@ class Memory implements CacheInterface {
 	}
 
 	public function setPrefix($prefix) {
-		$this->cache->setPrefix($prefix);
+		// do nothing
 	}
 }

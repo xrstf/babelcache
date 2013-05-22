@@ -8,4 +8,5 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-require 'tests/TestFactory.php';
+$loader = require __DIR__.'/../../vendor/autoload.php';
+$loader->add('', __DIR__);

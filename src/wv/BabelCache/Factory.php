@@ -96,6 +96,20 @@ abstract class Factory {
 	}
 
 	/**
+	 * Create an adapter
+	 *
+	 * @throws Exception         if the adapter was not found or is not available
+	 * @param  string $adapter   the adapter key
+	 * @return AdapterInterface  a fresh adapter instance
+	 */
+	public function getAdapter($adapter) {
+		$className = $this->getAdapterClass($adapter);
+		$adapter   = $this->construct($adapter, $className);
+
+		return $adapter;
+	}
+
+	/**
 	 * Create cache instance
 	 *
 	 * @throws Exception              if the adapter was not found or is not available
@@ -119,11 +133,11 @@ abstract class Factory {
 		$instance = $this->construct($adapter, $className);
 		$cache    = $overwritten ? $instance : new Cache\Generic($instance);
 
-		$instance->setPrefix($this->getPrefix());
+		$cache->setPrefix($this->getPrefix());
 
 		// done
 
-		return $instance;
+		return $cache;
 	}
 
 	/**
@@ -137,9 +151,8 @@ abstract class Factory {
 	 * @return Psr\Cache\CacheInterface  a fresh cache instance
 	 */
 	public function getPsrCache($adapter) {
-		$className = $this->getAdapterClass($adapter);
-		$adapter   = $this->construct($adapter, $className);
-		$cache     = new Psr\Cache($adapter);
+		$adapter = $this->getAdapter($adapter);
+		$cache   = new Psr\Cache($adapter);
 
 		return $cache;
 	}
