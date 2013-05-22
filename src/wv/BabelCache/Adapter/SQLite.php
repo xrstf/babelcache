@@ -41,7 +41,7 @@ class SQLite implements AdapterInterface, LockingInterface {
 		$tables = $stmt->fetchAll();
 
 		if (empty($tables)) {
-			$sql = 'CREATE TABLE "babelcache_adapter" ("keyhash" VARCHAR(40), "payload" BLOB, PRIMARY KEY ("keyhash"))';
+			$sql = 'CREATE TABLE "babelcache_adapter" ("keyhash" VARCHAR(50), "payload" BLOB, PRIMARY KEY ("keyhash"))';
 			$this->pdo->exec($sql);
 		}
 
