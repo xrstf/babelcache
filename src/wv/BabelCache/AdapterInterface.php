@@ -50,7 +50,7 @@ interface AdapterInterface {
 	 *
 	 * @param  string $key    the object key
 	 * @param  mixed  $value  the value to store
-	 * @return mixed          the set value
+	 * @return boolean        true on success, else false
 	 */
 	public function set($key, $value);
 

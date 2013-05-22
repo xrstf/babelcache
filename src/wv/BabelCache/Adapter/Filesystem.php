@@ -108,7 +108,7 @@ class Filesystem implements AdapterInterface, LockingInterface {
 	 *
 	 * @param  string $key    the object key
 	 * @param  mixed  $value  the value to store
-	 * @return mixed          the set value
+	 * @return boolean        true on success, else false
 	 */
 	public function set($key, $value) {
 		$filename = $this->getFilename($key);
@@ -119,7 +119,7 @@ class Filesystem implements AdapterInterface, LockingInterface {
 
 		error_reporting($level);
 
-		return $value;
+		return true;
 	}
 
 	/**

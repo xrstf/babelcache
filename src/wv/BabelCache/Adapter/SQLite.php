@@ -95,7 +95,7 @@ class SQLite implements AdapterInterface, LockingInterface {
 
 		$found = !empty($row) && !empty($row['payload']);
 
-		return $found ? unserialize(base64_decode($row['payload'])) : false;
+		return $found ? unserialize(base64_decode($row['payload'])) : null;
 	}
 
 	/**
@@ -106,7 +106,7 @@ class SQLite implements AdapterInterface, LockingInterface {
 	 *
 	 * @param  string $key    the object key
 	 * @param  mixed  $value  the value to store
-	 * @return mixed          the set value
+	 * @return boolean        true on success, else false
 	 */
 	public function set($key, $value) {
 		$stmt    = $this->getStatement('replace');
@@ -116,7 +116,7 @@ class SQLite implements AdapterInterface, LockingInterface {
 		$stmt->execute(array('hash' => sha1($key), 'payload' => $payload));
 		$stmt->closeCursor();
 
-		return $value;
+		return true;
 	}
 
 	/**
