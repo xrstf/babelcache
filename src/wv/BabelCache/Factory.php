@@ -42,15 +42,16 @@ abstract class Factory {
 		$prefix = 'wv\BabelCache\Adapter\\';
 
 		$this->adapters = array(
-			'apc'        => $prefix.'APC',
-			'blackhole'  => $prefix.'Blackhole',
-			'filesystem' => $prefix.'Filesystem',
-			'memcache'   => $prefix.'Memcache',
-			'memcached'  => $prefix.'Memcached',
-			'memory'     => $prefix.'Memory',
-			'sqlite'     => $prefix.'SQLite',
-			'xcache'     => $prefix.'XCache',
-			'zendserver' => $prefix.'ZendServer'
+			'apc'           => $prefix.'APC',
+			'blackhole'     => $prefix.'Blackhole',
+			'filesystem'    => $prefix.'Filesystem',
+			'memcache'      => $prefix.'Memcache',
+			'memcached'     => $prefix.'Memcached',
+			'memcachedsasl' => $prefix.'MemcachedSASL',
+			'memory'        => $prefix.'Memory',
+			'sqlite'        => $prefix.'SQLite',
+			'xcache'        => $prefix.'XCache',
+			'zendserver'    => $prefix.'ZendServer'
 		);
 
 		$prefix = 'wv\BabelCache\Cache\\';
