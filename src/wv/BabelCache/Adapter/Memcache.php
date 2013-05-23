@@ -62,10 +62,10 @@ class Memcache implements AdapterInterface, IncrementInterface, LockingInterface
 
 	/**
 	 *
-	 * @param string $host           the port
-	 * @param int    $port           the port
-	 * @param int    $weight         weight as integer / decides ammount of keys saved on this server
-	 * @throws BabelCache_Exception  if the connection could not be established
+	 * @throws Exception       if the connection could not be established
+	 * @param  string $host    the host name
+	 * @param  int    $port    the port
+	 * @param  int    $weight  weight as integer / decides ammount of keys saved on this server
 	 */
 	public function addServer($host, $port = 11211, $weight = 0) {
 		if (!$this->memcached->addServer($host, $port, true, $weight)) {
@@ -96,10 +96,12 @@ class Memcache implements AdapterInterface, IncrementInterface, LockingInterface
 	 * @return mixed           the found value or null
 	 */
 	public function get($key, &$found = null) {
-		$value = $this->memcached->get($key);
-		$found = $value !== false;
+		// always request an array with one key, so we can properly distinguish
+		// between not-found and false values
+		$values = $this->memcached->get(array($key));
+		$found  = count($values) === 1;
 
-		return $found ? unserialize($value) : $value;
+		return $found ? reset($values) : null;
 	}
 
 	/**
@@ -113,7 +115,7 @@ class Memcache implements AdapterInterface, IncrementInterface, LockingInterface
 	 * @return boolean        true on success, else false
 	 */
 	public function set($key, $value, $ttl = 0) {
-		return $this->memcached->set($key, serialize($value), 0, $ttl);
+		return $this->memcached->set($key, $value, 0, $ttl);
 	}
 
 	/**
