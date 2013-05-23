@@ -12,6 +12,7 @@ namespace wv\BabelCache\Adapter;
 
 use wv\BabelCache\AdapterInterface;
 use wv\BabelCache\Exception;
+use wv\BabelCache\Factory;
 use wv\BabelCache\IncrementInterface;
 use wv\BabelCache\LockingInterface;
 
@@ -84,10 +85,18 @@ class MemcachedSASL implements AdapterInterface, IncrementInterface, LockingInte
 	 * to check for the required functions and whether user data caching is
 	 * enabled.
 	 *
-	 * @return boolean  true if the cache can be used, else false
+	 * @param  Factory $factory  the project's factory to give the adapter some more knowledge
+	 * @return boolean           true if the cache can be used, else false
 	 */
-	public static function isAvailable() {
-		return true;
+	public static function isAvailable(Factory $factory = null) {
+		if (!$factory) return true;
+
+		// no auth, no fun (use the other adapters in this case)
+		if ($factory->getMemcacheAuthentication() === null) return false;
+
+		$servers = $factory->getMemcacheAddresses();
+
+		return !empty($servers);
 	}
 
 	/**

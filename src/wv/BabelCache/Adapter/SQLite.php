@@ -13,6 +13,7 @@ namespace wv\BabelCache\Adapter;
 use PDO;
 use wv\BabelCache\AdapterInterface;
 use wv\BabelCache\Exception;
+use wv\BabelCache\Factory;
 use wv\BabelCache\LockingInterface;
 
 /**
@@ -55,9 +56,10 @@ class SQLite implements AdapterInterface, LockingInterface {
 	 * to check for the required functions and whether user data caching is
 	 * enabled.
 	 *
-	 * @return boolean  true if the cache can be used, else false
+	 * @param  Factory $factory  the project's factory to give the adapter some more knowledge
+	 * @return boolean           true if the cache can be used, else false
 	 */
-	public static function isAvailable() {
+	public static function isAvailable(Factory $factory = null) {
 		return in_array('sqlite', PDO::getAvailableDrivers());
 	}
 

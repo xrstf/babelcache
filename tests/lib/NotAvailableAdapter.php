@@ -9,9 +9,10 @@
  */
 
 use wv\BabelCache\Adapter\Memory;
+use wv\BabelCache\Factory;
 
 class NotAvailableAdapter extends Memory {
-	public static function isAvailable() {
+	public static function isAvailable(Factory $factory = null) {
 		return false;
 	}
 }

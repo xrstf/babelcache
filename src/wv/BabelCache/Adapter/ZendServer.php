@@ -11,6 +11,7 @@
 namespace wv\BabelCache\Adapter;
 
 use wv\BabelCache\AdapterInterface;
+use wv\BabelCache\Factory;
 
 /**
  * Zend Server
@@ -30,9 +31,10 @@ class ZendServer implements AdapterInterface {
 	 * to check for the required functions and whether user data caching is
 	 * enabled.
 	 *
-	 * @return boolean  true if the cache can be used, else false
+	 * @param  Factory $factory  the project's factory to give the adapter some more knowledge
+	 * @return boolean           true if the cache can be used, else false
 	 */
-	public static function isAvailable() {
+	public static function isAvailable(Factory $factory = null) {
 		// Wir müssen auch prüfen, ob Werte gespeichert werden können (oder ob nur der Opcode-Cache aktiviert ist).
 		return function_exists('zend_shm_cache_store') && ini_get('zend_datacache.enable') && zend_shm_cache_store('test', 1, 1);
 	}

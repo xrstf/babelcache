@@ -17,14 +17,14 @@ class TestFactory extends Factory {
 		$this->setAdapter('blackhole', null);
 	}
 
-	protected function getCacheDirectory() {
+	public function getCacheDirectory() {
 		$dir = __DIR__.'/../fscache';
 		if (!is_dir($dir)) mkdir($dir, 0777);
 
 		return $dir;
 	}
 
-	protected function getSQLiteConnection() {
+	public function getSQLiteConnection() {
 		return SQLite::connect(__DIR__.'/../test.sqlite');
 	}
 }

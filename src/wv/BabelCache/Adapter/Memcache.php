@@ -12,6 +12,7 @@ namespace wv\BabelCache\Adapter;
 
 use wv\BabelCache\AdapterInterface;
 use wv\BabelCache\Exception;
+use wv\BabelCache\Factory;
 use wv\BabelCache\IncrementInterface;
 use wv\BabelCache\LockingInterface;
 
@@ -38,10 +39,16 @@ class Memcache implements AdapterInterface, IncrementInterface, LockingInterface
 	 * to check for the required functions and whether user data caching is
 	 * enabled.
 	 *
-	 * @return boolean  true if the cache can be used, else false
+	 * @param  Factory $factory  the project's factory to give the adapter some more knowledge
+	 * @return boolean           true if the cache can be used, else false
 	 */
-	public static function isAvailable() {
-		return class_exists('Memcache');
+	public static function isAvailable(Factory $factory = null) {
+		if (!class_exists('Memcache')) return false;
+		if (!$factory) return true;
+
+		$servers = $factory->getMemcacheAddresses();
+
+		return !empty($servers);
 	}
 
 	/**

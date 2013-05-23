@@ -12,6 +12,7 @@ namespace wv\BabelCache\Adapter;
 
 use wv\BabelCache\AdapterInterface;
 use wv\BabelCache\Exception;
+use wv\BabelCache\Factory;
 use wv\BabelCache\IncrementInterface;
 use wv\BabelCache\LockingInterface;
 
@@ -35,10 +36,20 @@ class Memcached implements AdapterInterface, IncrementInterface, LockingInterfac
 	/**
 	 * Checks whether a caching system is avilable
 	 *
-	 * @return boolean  true if php_memcached is available, else false
+	 * This method will be called before an instance is created. It is supposed
+	 * to check for the required functions and whether user data caching is
+	 * enabled.
+	 *
+	 * @param  Factory $factory  the project's factory to give the adapter some more knowledge
+	 * @return boolean           true if the cache can be used, else false
 	 */
-	public static function isAvailable() {
-		return class_exists('Memcached');
+	public static function isAvailable(Factory $factory = null) {
+		if (!class_exists('Memcached')) return false;
+		if (!$factory) return true;
+
+		$servers = $factory->getMemcacheAddresses();
+
+		return !empty($servers);
 	}
 
 	/**
@@ -92,7 +103,7 @@ class Memcached implements AdapterInterface, IncrementInterface, LockingInterfac
 	 * @param  boolean $found  will be set to true or false when the method is finished
 	 * @return mixed           the found value or null
 	 */
-	public function get($key, $found = null) {
+	public function get($key, &$found = null) {
 		$value = $this->memcached->get($key);
 		$found = $this->memcached->getResultCode() != \Memcached::RES_NOTFOUND;
 

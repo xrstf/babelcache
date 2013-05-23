@@ -26,9 +26,10 @@ interface AdapterInterface {
 	 * to check for the required functions and whether user data caching is
 	 * enabled.
 	 *
-	 * @return boolean  true if the cache can be used, else false
+	 * @param  Factory $factory  the project's factory to give the adapter some more knowledge
+	 * @return boolean           true if the cache can be used, else false
 	 */
-	public static function isAvailable();
+	public static function isAvailable(Factory $factory = null);
 
 	/**
 	 * Gets a value out of the cache

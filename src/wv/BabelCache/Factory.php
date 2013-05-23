@@ -172,9 +172,15 @@ abstract class Factory {
 	 */
 	protected function construct($name, $className) {
 		switch ($name) {
+			///////////////////////////////////////////////////////////////////////
 			case 'memcache':
 
-				$servers  = $this->getMemcacheAddresses();
+				$servers = $this->getMemcacheAddresses();
+
+				if (empty($servers)) {
+					throw new Exception('No memcached servers have been returned from getMemcacheAddresses()!');
+				}
+
 				$instance = new $className();
 
 				foreach ($servers as $server) {
@@ -183,9 +189,15 @@ abstract class Factory {
 
 				break;
 
+			///////////////////////////////////////////////////////////////////////
 			case 'memcached':
 
-				$servers  = $this->getMemcacheAddresses();
+				$servers = $this->getMemcacheAddresses();
+
+				if (empty($servers)) {
+					throw new Exception('No memcached servers have been returned from getMemcacheAddresses()!');
+				}
+
 				$instance = new $className($this->getPrefix()); // care for a persistent connection
 
 				foreach ($servers as $server) {
@@ -194,6 +206,24 @@ abstract class Factory {
 
 				break;
 
+			///////////////////////////////////////////////////////////////////////
+			case 'memcachedsasl':
+
+				$servers = $this->getMemcacheAddresses();
+
+				if (empty($servers)) {
+					throw new Exception('No memcached servers have been returned from getMemcacheAddresses()!');
+				}
+
+				$server   = reset($servers);
+				$auth     = $this->getMemcacheAuthentication();
+				$instance = new $className($server[0], $server[1]);
+
+				$instance->authenticate($auth[0], $auth[1]);
+
+				break;
+
+			///////////////////////////////////////////////////////////////////////
 			case 'filesystem':
 
 				$path     = $this->getCacheDirectory();
@@ -201,6 +231,7 @@ abstract class Factory {
 
 				break;
 
+			///////////////////////////////////////////////////////////////////////
 			case 'sqlite':
 
 				$conn     = $this->getSQLiteConnection();
@@ -208,6 +239,7 @@ abstract class Factory {
 
 				break;
 
+			///////////////////////////////////////////////////////////////////////
 			default:
 				$instance = new $className();
 		}
@@ -230,7 +262,7 @@ abstract class Factory {
 
 		// check availability
 
-		if (!call_user_func(array($className, 'isAvailable'))) {
+		if (!call_user_func(array($className, 'isAvailable'), $this)) {
 			throw new Exception('The "'.$adapter.'" adapter is not available.');
 		}
 
@@ -245,8 +277,22 @@ abstract class Factory {
 	 *
 	 * @return array  array(array(host, port, weight))
 	 */
-	protected function getMemcacheAddresses() {
+	public function getMemcacheAddresses() {
 		return array(array('localhost', 11211, 1));
+	}
+
+	/**
+	 * Return memcache SASL auth data
+	 *
+	 * This method should return a tupel, consisting of the username and the
+	 * password for the memcached daemon. If this method returns null, it's
+	 * assumed no auth is available/needed and the MemcachedSASL adapter is
+	 * disabled.
+	 *
+	 * @return mixed  array(username, password) or null to disable SASL support
+	 */
+	public function getMemcacheAuthentication() {
+		return null;
 	}
 
 	/**
@@ -263,7 +309,7 @@ abstract class Factory {
 	 *
 	 * @return string  the prefix (can be empty, if you know what you're doing)
 	 */
-	protected function getPrefix() {
+	public function getPrefix() {
 		return '';
 	}
 
@@ -279,12 +325,12 @@ abstract class Factory {
 	 *
 	 * @return string  the absolute path to the cache directory
 	 */
-	abstract protected function getCacheDirectory();
+	abstract public function getCacheDirectory();
 
 	/**
 	 * Returns the sqlite connection
 	 *
 	 * @return PDO  the established connection
 	 */
-	abstract protected function getSQLiteConnection();
+	abstract public function getSQLiteConnection();
 }
