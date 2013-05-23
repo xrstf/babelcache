@@ -76,10 +76,32 @@ abstract class Factory {
 	/**
 	 * Get a list of all adapters
 	 *
-	 * @return array  {name: className, name: className, ...}
+	 * @return array  {name: className, name: className, ...} or [name, name, ...]
 	 */
-	public function getAdapters() {
-		return $this->adapters;
+	public function getAdapters($keysOnly = false) {
+		return $keysOnly ? array_keys($this->adapters) : $this->adapters;
+	}
+
+	/**
+	 * Get a list of all adapters
+	 *
+	 * @return array  {name: className, name: className, ...} or [name, name, ...]
+	 */
+	public function getAvailableAdapters($keysOnly = false) {
+		$result = array();
+
+		foreach ($this->getAdapters(false) as $name => $className) {
+			if (call_user_func(array($className, 'isAvailable'), $this)) {
+				if ($keysOnly) {
+					$result[] = $name;
+				}
+				else {
+					$result[$name] = $className;
+				}
+			}
+		}
+
+		return $result;
 	}
 
 	/**
