@@ -13,13 +13,13 @@ class Cache_GenericTest extends PHPUnit_Framework_TestCase {
 	protected static $available;
 
 	public static function setUpBeforeClass() {
-		self::$factory   = new TestFactory();
+		self::$factory   = new TestFactory('fscache');
 		self::$available = self::$factory->getAvailableAdapters();
 	}
 
 	protected function tearDown() {
 		foreach (self::$available as $adapter => $className) {
-			self::$factory->getAdapter($adapter)->clear();
+			$this->getCache($adapter)->clear('t', true);
 		}
 	}
 
@@ -139,19 +139,16 @@ class Cache_GenericTest extends PHPUnit_Framework_TestCase {
 
 	protected function getCache($cache, $mark = true) {
 		if (!isset(self::$available[$cache])) {
-			if ($mark) $this->markTestSkipped($cache.' is not avilable.');
+			if ($mark) $this->markTestSkipped($cache.' is not available.');
 			return null;
 		}
 
-		$factory = new TestFactory();
-		$cache   = $factory->getCache($cache);
-
-		return $cache;
+		return self::$factory->getCache($cache);
 	}
 
 	protected function buildDataSet($sets) {
 		$result  = array();
-		$factory = new TestFactory(); // setUpBeforeClass has not yet been called
+		$factory = new TestFactory('fscache'); // setUpBeforeClass has not yet been called
 
 		foreach ($factory->getAdapters(true) as $adapter) {
 			if ($sets === null) {

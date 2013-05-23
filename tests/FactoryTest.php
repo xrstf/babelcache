@@ -13,7 +13,7 @@ class FactoryTest extends PHPUnit_Framework_TestCase {
 	 * @dataProvider  cacheNameProvider
 	 */
 	public function testBuildCache($cacheName, $forceGeneric, $expectedClass) {
-		$factory = new TestFactory();
+		$factory = new TestFactory('fscache');
 
 		// disable the filesystem overwrite
 		$factory->setOverwrite('filesystem', null);
@@ -34,7 +34,7 @@ class FactoryTest extends PHPUnit_Framework_TestCase {
 	 * @expectedException  wv\BabelCache\Exception
 	 */
 	public function testBuildNonexistingCache() {
-		$factory = new TestFactory();
+		$factory = new TestFactory('fscache');
 		$factory->getCache('nonexisting');
 	}
 
@@ -42,14 +42,14 @@ class FactoryTest extends PHPUnit_Framework_TestCase {
 	 * @expectedException  wv\BabelCache\Exception
 	 */
 	public function testBuildNotAvailableCache() {
-		$factory = new TestFactory();
+		$factory = new TestFactory('fscache');
 
 		$factory->setAdapter('nope', 'NotAvailableAdapter');
 		$factory->getCache('nope');
 	}
 
 	public function testGetAdapter() {
-		$factory = new TestFactory();
+		$factory = new TestFactory('fscache');
 		$this->assertInstanceOf('wv\BabelCache\Adapter\Memory', $factory->getAdapter('memory'));
 	}
 }

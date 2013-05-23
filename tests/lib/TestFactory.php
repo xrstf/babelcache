@@ -12,13 +12,17 @@ use wv\BabelCache\Factory;
 use wv\BabelCache\Adapter\SQLite;
 
 class TestFactory extends Factory {
-	public function __construct() {
+	protected $cacheDir;
+
+	public function __construct($cacheDir) {
 		parent::__construct();
+
 		$this->setAdapter('blackhole', null);
+		$this->cacheDir = $cacheDir;
 	}
 
 	public function getCacheDirectory() {
-		$dir = __DIR__.'/../fscache';
+		$dir = __DIR__.'/../'.$this->cacheDir;
 		if (!is_dir($dir)) mkdir($dir, 0777);
 
 		return $dir;

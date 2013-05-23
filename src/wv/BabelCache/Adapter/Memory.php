@@ -47,7 +47,7 @@ class Memory implements AdapterInterface, LockingInterface {
 	 * @return mixed           the found value or null
 	 */
 	public function get($key, &$found = null) {
-		$found = $thiis->exists($key);
+		$found = $this->exists($key);
 
 		return $found ? $this->data[$key] : null;
 	}
