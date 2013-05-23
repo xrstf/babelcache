@@ -70,7 +70,12 @@ abstract class Factory {
 	 * @param string $className  class name, e.g. 'my\Cool\Adapter'
 	 */
 	public function setAdapter($key, $className) {
-		$this->adapters[$key] = $className;
+		if ($className === null) {
+			unset($this->adapters[$key]);
+		}
+		else {
+			$this->adapters[$key] = $className;
+		}
 	}
 
 	/**
@@ -115,7 +120,12 @@ abstract class Factory {
 	 * @param string $className  cache class name, e.g. 'my\Cool\SQLiteCache'
 	 */
 	public function setOverwrite($key, $className) {
-		$this->overwrites[$key] = $className;
+		if ($className === null) {
+			unset($this->overwrites[$key]);
+		}
+		else {
+			$this->overwrites[$key] = $className;
+		}
 	}
 
 	/**
