@@ -10,17 +10,16 @@
 
 class Cache_GenericTest extends PHPUnit_Framework_TestCase {
 	protected static $factory;
+	protected static $available;
 
 	public static function setUpBeforeClass() {
-		self::$factory = new TestFactory();
+		self::$factory   = new TestFactory();
+		self::$available = self::$factory->getAvailableAdapters();
 	}
 
 	protected function tearDown() {
-		foreach (self::$factory->getAdapters() as $adapter => $className) {
-			if ($className === null) continue;
-
-			$cache = $this->getCache($adapter, false);
-			if ($cache) $cache->clear('t', true);
+		foreach (self::$available as $adapter => $className) {
+			self::$factory->getAdapter($adapter)->clear();
 		}
 	}
 
@@ -139,37 +138,22 @@ class Cache_GenericTest extends PHPUnit_Framework_TestCase {
 	}
 
 	protected function getCache($cache, $mark = true) {
-		static $unavailable = array();
-
-		if (in_array($cache, $unavailable)) {
+		if (!isset(self::$available[$cache])) {
 			if ($mark) $this->markTestSkipped($cache.' is not avilable.');
 			return null;
 		}
 
-		try {
-			$factory = new TestFactory();
-			$cache   = $factory->getCache($cache);
+		$factory = new TestFactory();
+		$cache   = $factory->getCache($cache);
 
-			return $cache;
-		}
-		catch (wv\BabelCache\Exception $e) {
-			$unavailable[] = $cache;
-
-			if ($mark) {
-				$this->markTestSkipped($cache.' is not avilable.');
-			}
-
-			return null;
-		}
+		return $cache;
 	}
 
 	protected function buildDataSet($sets) {
 		$result  = array();
 		$factory = new TestFactory(); // setUpBeforeClass has not yet been called
 
-		foreach ($factory->getAdapters() as $adapter => $className) {
-			if ($className === null) continue;
-
+		foreach ($factory->getAdapters(true) as $adapter) {
 			if ($sets === null) {
 				$result[] = array($adapter);
 			}
