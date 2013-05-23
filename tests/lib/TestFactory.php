@@ -25,6 +25,6 @@ class TestFactory extends Factory {
 	}
 
 	public function getSQLiteConnection() {
-		return SQLite::connect(__DIR__.'/../test.sqlite');
+		return SQLite::connect(':memory:');
 	}
 }
