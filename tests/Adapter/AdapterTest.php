@@ -121,6 +121,30 @@ class Adapter_AdapterTest extends PHPUnit_Framework_TestCase {
 		$this->assertFalse($adapter->remove('key'));
 	}
 
+	/**
+	 * @dataProvider adapterProvider
+	 * @depends      testSetGet
+	 */
+	public function testIncrement($adapterName) {
+		$adapter = $this->getAdapter($adapterName);
+
+		if (!($adapter instanceof wv\BabelCache\IncrementInterface)) {
+			$this->markTestSkipped($adapterName.' does not implement IncrementInterface.');
+		}
+
+		$adapter->set('key', 41);
+
+		$this->assertSame(41, $adapter->get('key'));
+		$this->assertSame(42, $adapter->increment('key'));
+		$this->assertSame(42, $adapter->get('key'));
+		$this->assertSame(43, $adapter->increment('key'));
+		$this->assertSame(43, $adapter->get('key'));
+
+		// non-existing keys should not be created
+		$this->assertFalse($adapter->increment('foo'));
+		$this->assertFalse($adapter->exists('foo'));
+	}
+
 	public function adapterProvider() {
 		return $this->buildDataSet(null);
 	}
