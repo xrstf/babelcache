@@ -107,7 +107,7 @@ class Memcached implements AdapterInterface, IncrementInterface, LockingInterfac
 		$value = $this->memcached->get($key);
 		$found = $this->memcached->getResultCode() != \Memcached::RES_NOTFOUND;
 
-		return $value;
+		return $found ? $value : null;
 	}
 
 	/**
