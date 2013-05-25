@@ -13,16 +13,13 @@ namespace wv\BabelCache\Adapter;
 use wv\BabelCache\Factory;
 
 /**
- * SQLite Cache
+ * MySQL Cache
  *
- * This is an improved fallback cache for systems with "special needs"
- * regarding the filesystem. To avoid problems with file permissions, stati and
- * all the other stuff that makes the PHP file API so goddamn awful, use this
- * implementation.
+ * This PDO adapter uses a MySQL InnoDB table to store the data.
  *
  * @package BabelCache.Adapter
  */
-class SQLite extends PDO {
+class MySQL extends PDO {
 	/**
 	 * Checks whether a caching system is avilable
 	 *
@@ -34,17 +31,40 @@ class SQLite extends PDO {
 	 * @return boolean           true if the cache can be used, else false
 	 */
 	public static function isAvailable(Factory $factory = null) {
-		return class_exists('PDO') && in_array('sqlite', \PDO::getAvailableDrivers());
+		return class_exists('PDO') && in_array('mysql', \PDO::getAvailableDrivers());
 	}
 
 	/**
 	 * Connect to a database
 	 *
-	 * @param  string $databaseFile  full path to the database file
-	 * @return \PDO                  the database connection instance
+	 * @param  string $host
+	 * @param  string $user
+	 * @param  string $password
+	 * @param  string $database
+	 * @return \PDO              the database connection instance
 	 */
-	public static function connect($databaseFile) {
-		return new \PDO('sqlite:'.$databaseFile, null, null, array(
+	public static function connect($host, $user, $password, $database) {
+		if (strpos($host, '/') !== false) {
+			$dsn = 'mysql:unix_socket='.$host;
+		}
+		else {
+			$parts = explode(':', $host);
+
+			if (count($parts) === 1) {
+				$dsn = 'mysql:host='.$host;
+			}
+			else {
+				$dsn = sprintf('mysql:host=%s;port=%s', $parts[0], $parts[1]);
+			}
+		}
+
+		if (!empty($database)) {
+			$dsn .= ';dbname='.$database;
+		}
+
+		$dsn .= ';charset=utf8';
+
+		return new \PDO($dsn, $user, $password, array(
 			\PDO::ATTR_ERRMODE    => \PDO::ERRMODE_EXCEPTION,
 			\PDO::ATTR_PERSISTENT => true
 		));
@@ -53,11 +73,11 @@ class SQLite extends PDO {
 	protected function getQueries($table) {
 		return array(
 			'get'    => sprintf('SELECT payload FROM %s WHERE keyhash = :hash', $table),
-			'set'    => sprintf('INSERT OR REPLACE INTO %s (keyhash, payload) VALUES (:hash, :payload)', $table),
+			'set'    => sprintf('REPLACE INTO %s (keyhash, payload) VALUES (:hash, :payload)', $table),
 			'exists' => sprintf('SELECT 1 FROM %s WHERE keyhash = :hash', $table),
 			'remove' => sprintf('DELETE FROM %s WHERE keyhash = :hash', $table),
 			'clear'  => sprintf('DELETE FROM %s', $table),
-			'lock'   => sprintf('INSERT OR IGNORE INTO %s (keyhash, payload) VALUES (:hash, :payload)', $table)
+			'lock'   => sprintf('INSERT IGNORE INTO %s (keyhash, payload) VALUES (:hash, :payload)', $table)
 		);
 	}
 }

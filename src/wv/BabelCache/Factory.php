@@ -50,6 +50,7 @@ abstract class Factory {
 			'memcachedsasl' => $prefix.'MemcachedSASL',
 			'memory'        => $prefix.'Memory',
 			'sqlite'        => $prefix.'SQLite',
+			'mysql'         => $prefix.'MySQL',
 			'xcache'        => $prefix.'XCache',
 			'zendserver'    => $prefix.'ZendServer'
 		);
@@ -267,7 +268,17 @@ abstract class Factory {
 			case 'sqlite':
 
 				$conn     = $this->getSQLiteConnection();
-				$instance = new $className($conn);
+				$table    = $this->getSQLiteTableName();
+				$instance = new $className($conn, $table);
+
+				break;
+
+			///////////////////////////////////////////////////////////////////////
+			case 'mysql':
+
+				$conn     = $this->getMySQLConnection();
+				$table    = $this->getMySQLTableName();
+				$instance = new $className($conn, $table);
 
 				break;
 
@@ -365,4 +376,25 @@ abstract class Factory {
 	 * @return PDO  the established connection
 	 */
 	abstract public function getSQLiteConnection();
+
+	/**
+	 * Returns the sqlite table name
+	 *
+	 * @return string
+	 */
+	abstract public function getSQLiteTableName();
+
+	/**
+	 * Returns the MySQL connection
+	 *
+	 * @return PDO  the established connection
+	 */
+	abstract public function getMySQLConnection();
+
+	/**
+	 * Returns the MySQL table name
+	 *
+	 * @return string
+	 */
+	abstract public function getMySQLTableName();
 }

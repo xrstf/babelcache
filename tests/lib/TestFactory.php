@@ -10,6 +10,7 @@
 
 use wv\BabelCache\Factory;
 use wv\BabelCache\Adapter\SQLite;
+use wv\BabelCache\Adapter\MySQL;
 
 class TestFactory extends Factory {
 	protected $cacheDir;
@@ -29,6 +30,26 @@ class TestFactory extends Factory {
 	}
 
 	public function getSQLiteConnection() {
-		return SQLite::connect(':memory:');
+		$connection = SQLite::connect(':memory:');
+		$connection->exec('DROP TABLE IF EXISTS "tmp"');
+		$connection->exec('CREATE TABLE "tmp" ("keyhash" VARCHAR(50), "payload" BLOB, PRIMARY KEY ("keyhash"))');
+
+		return $connection;
+	}
+
+	public function getSQLiteTableName() {
+		return 'tmp';
+	}
+
+	public function getMySQLConnection() {
+		$connection = MySQL::connect('localhost', 'develop', 'develop', 'test');
+		$connection->exec('DROP TABLE IF EXISTS tmp');
+		$connection->exec('CREATE TABLE tmp (keyhash VARCHAR(50), payload BLOB, PRIMARY KEY (keyhash))');
+
+		return $connection;
+	}
+
+	public function getMySQLTableName() {
+		return 'tmp';
 	}
 }
