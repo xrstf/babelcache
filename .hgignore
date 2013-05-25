@@ -4,3 +4,4 @@ docs/coco/*.html
 tests/fscache
 tests/fsadapter
 vendor/
+test-coverage/
