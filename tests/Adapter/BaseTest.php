@@ -8,26 +8,14 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-class Adapter_AdapterTest extends PHPUnit_Framework_TestCase {
-	protected static $factory;
-	protected static $available;
-
-	public static function setUpBeforeClass() {
-		self::$factory   = new TestFactory('fsadapter');
-		self::$available = self::$factory->getAvailableAdapters();
-	}
-
-	protected function tearDown() {
-		foreach (self::$available as $adapter => $className) {
-			self::$factory->getAdapter($adapter)->clear();
-		}
-	}
+abstract class Adapter_BaseTest extends PHPUnit_Framework_TestCase {
+	abstract protected function getAdapter();
 
 	/**
 	 * @dataProvider setGetProvider
 	 */
-	public function testSetGet($adapter, $key, $value) {
-		$adapter = $this->getAdapter($adapter);
+	public function testSetGet($key, $value) {
+		$adapter = $this->getAdapter();
 
 		// correct return value?
 		$result = $adapter->set($key, $value);
@@ -50,7 +38,7 @@ class Adapter_AdapterTest extends PHPUnit_Framework_TestCase {
 		$foo = new stdClass();
 		$foo->x = 1;
 
-		return $this->buildDataSet(array(
+		return array(
 			array('blub', 1),
 			array('blub', 3.41),
 			array('blub', false),
@@ -63,15 +51,14 @@ class Adapter_AdapterTest extends PHPUnit_Framework_TestCase {
 			array('blub', array(1)),
 			array('blub', new stdClass()),
 			array('blub', $foo)
-		));
+		);
 	}
 
 	/**
-	 * @dataProvider adapterProvider
-	 * @depends      testSetGet
+	 * @depends  testSetGet
 	 */
-	public function testClear($adapter) {
-		$adapter = $this->getAdapter($adapter);
+	public function testClear() {
+		$adapter = $this->getAdapter();
 
 		$adapter->set('foo', 'bar');
 		$adapter->set('bar', 'bar');
@@ -82,11 +69,10 @@ class Adapter_AdapterTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @dataProvider adapterProvider
-	 * @depends      testSetGet
+	 * @depends  testSetGet
 	 */
-	public function testOverwritingValues($adapter) {
-		$adapter = $this->getAdapter($adapter);
+	public function testOverwritingValues() {
+		$adapter = $this->getAdapter();
 
 		$adapter->set('key', 'abc');
 		$adapter->set('key', 'xyz');
@@ -95,11 +81,10 @@ class Adapter_AdapterTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @dataProvider adapterProvider
-	 * @depends      testSetGet
+	 * @depends  testSetGet
 	 */
-	public function testExists($adapter) {
-		$adapter = $this->getAdapter($adapter);
+	public function testExists() {
+		$adapter = $this->getAdapter();
 
 		$adapter->set('key', 'abc');
 
@@ -109,11 +94,10 @@ class Adapter_AdapterTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @dataProvider adapterProvider
-	 * @depends      testExists
+	 * @depends  testExists
 	 */
-	public function testRemove($adapter) {
-		$adapter = $this->getAdapter($adapter);
+	public function testRemove() {
+		$adapter = $this->getAdapter();
 		$adapter->set('key', 'abc');
 
 		$this->assertTrue($adapter->remove('key'));
@@ -122,14 +106,13 @@ class Adapter_AdapterTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @dataProvider adapterProvider
-	 * @depends      testSetGet
+	 * @depends  testSetGet
 	 */
-	public function testIncrement($adapterName) {
-		$adapter = $this->getAdapter($adapterName);
+	public function testIncrement() {
+		$adapter = $this->getAdapter();
 
 		if (!($adapter instanceof wv\BabelCache\IncrementInterface)) {
-			$this->markTestSkipped($adapterName.' does not implement IncrementInterface.');
+			$this->markTestSkipped('Adapter does not implement IncrementInterface.');
 		}
 
 		$adapter->set('key', 41);
@@ -143,37 +126,5 @@ class Adapter_AdapterTest extends PHPUnit_Framework_TestCase {
 		// non-existing keys should not be created
 		$this->assertFalse($adapter->increment('foo'));
 		$this->assertFalse($adapter->exists('foo'));
-	}
-
-	public function adapterProvider() {
-		return $this->buildDataSet(null);
-	}
-
-	protected function getAdapter($adapter, $mark = true) {
-		if (!isset(self::$available[$adapter])) {
-			if ($mark) $this->markTestSkipped($adapter.' is not available.');
-			return null;
-		}
-
-		return self::$factory->getAdapter($adapter);
-	}
-
-	protected function buildDataSet($sets) {
-		$result  = array();
-		$factory = new TestFactory('fsadapter'); // setUpBeforeClass has not yet been called
-
-		foreach ($factory->getAdapters(true) as $adapter) {
-			if ($sets === null) {
-				$result[] = array($adapter);
-			}
-			else {
-				foreach ($sets as $set) {
-					array_unshift($set, $adapter);
-					$result[] = $set;
-				}
-			}
-		}
-
-		return $result;
 	}
 }

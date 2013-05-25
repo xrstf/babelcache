@@ -8,26 +8,19 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
+use wv\BabelCache\Adapter\Memory;
+use wv\BabelCache\Cache\Generic;
+
 class Cache_GenericTest extends PHPUnit_Framework_TestCase {
-	protected static $factory;
-	protected static $available;
-
-	public static function setUpBeforeClass() {
-		self::$factory   = new TestFactory('fscache');
-		self::$available = self::$factory->getAvailableAdapters();
-	}
-
-	protected function tearDown() {
-		foreach (self::$available as $adapter => $className) {
-			$this->getCache($adapter)->clear('t', true);
-		}
+	protected function getCache() {
+		return new Generic(new Memory());
 	}
 
 	/**
 	 * @dataProvider setGetProvider
 	 */
-	public function testSetGet($cache, $namespace, $key, $value) {
-		$cache  = $this->getCache($cache);
+	public function testSetGet($namespace, $key, $value) {
+		$cache  = $this->getCache();
 		$result = $cache->set($namespace, $key, $value);
 		$this->assertSame($value, $result, 'set should return the set value');
 
@@ -49,7 +42,7 @@ class Cache_GenericTest extends PHPUnit_Framework_TestCase {
 		$foo = new stdClass();
 		$foo->x = 1;
 
-		return $this->buildDataSet(array(
+		return array(
 			array('t.foo.bar', 'blub', 1),
 			array('t.foo.bar', 'blub', 3.41),
 			array('t.foo.bar', 'blub', false),
@@ -62,15 +55,15 @@ class Cache_GenericTest extends PHPUnit_Framework_TestCase {
 			array('t.foo.bar', 'blub', array(1)),
 			array('t.foo.bar', 'blub', new stdClass()),
 			array('t.foo.bar', 'blub', $foo)
-		));
+		);
 	}
 
 	/**
 	 * @dataProvider clearProvider
 	 * @depends      testSetGet
 	 */
-	public function testClear($cache, $clearLevel, $exists1, $exists2, $exists3) {
-		$cache = $this->getCache($cache);
+	public function testClear($clearLevel, $exists1, $exists2, $exists3) {
+		$cache = $this->getCache();
 		$l1    = 't.a'.uniqid();
 		$l2    = $l1.'.b'.uniqid();
 		$l3    = $l2.'.c'.uniqid();
@@ -86,19 +79,18 @@ class Cache_GenericTest extends PHPUnit_Framework_TestCase {
 	}
 
 	public function clearProvider() {
-		return $this->buildDataSet(array(
+		return array(
 			array('l3', true,  true,  false),
 			array('l2', true,  false, false),
 			array('l1', false, false, false)
-		));
+		);
 	}
 
 	/**
-	 * @dataProvider cacheProvider
-	 * @depends      testSetGet
+	 * @depends  testSetGet
 	 */
-	public function testOverwritingValues($cache) {
-		$cache = $this->getCache($cache);
+	public function testOverwritingValues() {
+		$cache = $this->getCache();
 
 		$cache->set('t.foo', 'key', 'abc');
 		$cache->set('t.foo', 'key', 'xyz');
@@ -107,11 +99,10 @@ class Cache_GenericTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @dataProvider cacheProvider
-	 * @depends      testSetGet
+	 * @depends  testSetGet
 	 */
-	public function testExists($cache) {
-		$cache = $this->getCache($cache);
+	public function testExists() {
+		$cache = $this->getCache();
 
 		$cache->set('t.foo', 'key', 'abc');
 		$this->assertTrue($cache->exists('t.foo', 'key'));
@@ -121,47 +112,14 @@ class Cache_GenericTest extends PHPUnit_Framework_TestCase {
 	}
 
 	/**
-	 * @dataProvider cacheProvider
-	 * @depends      testExists
+	 * @depends  testExists
 	 */
-	public function testRemove($cache) {
-		$cache = $this->getCache($cache);
+	public function testRemove() {
+		$cache = $this->getCache();
 		$cache->set('t.foo', 'key', 'abc');
 
 		$this->assertTrue($cache->remove('t.foo', 'key'));
 		$this->assertFalse($cache->remove('t.foo', 'key'));
 		$this->assertFalse($cache->exists('t.foo', 'key'));
-	}
-
-	public function cacheProvider() {
-		return $this->buildDataSet(null);
-	}
-
-	protected function getCache($cache, $mark = true) {
-		if (!isset(self::$available[$cache])) {
-			if ($mark) $this->markTestSkipped($cache.' is not available.');
-			return null;
-		}
-
-		return self::$factory->getCache($cache);
-	}
-
-	protected function buildDataSet($sets) {
-		$result  = array();
-		$factory = new TestFactory('fscache'); // setUpBeforeClass has not yet been called
-
-		foreach ($factory->getAdapters(true) as $adapter) {
-			if ($sets === null) {
-				$result[] = array($adapter);
-			}
-			else {
-				foreach ($sets as $set) {
-					array_unshift($set, $adapter);
-					$result[] = $set;
-				}
-			}
-		}
-
-		return $result;
 	}
 }
