@@ -18,6 +18,16 @@ class Adapter_FilesystemTest extends Adapter_BaseTest {
 			$this->markTestSkipped('Filesystem is not available.');
 		}
 
-		return $factory->getAdapter('filesystem');
+		$adapter = $factory->getAdapter('filesystem');
+		$adapter->clear();
+
+		return $adapter;
+	}
+
+	/**
+	 * @expectedException wv\BabelCache\Exception
+	 */
+	public function testBadDirectory() {
+		new Filesystem('mumblefoo');
 	}
 }

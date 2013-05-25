@@ -18,6 +18,9 @@ class Adapter_APCTest extends Adapter_BaseTest {
 			$this->markTestSkipped('APC is not available.');
 		}
 
-		return new APC();
+		$adapter = new APC();
+		$adapter->clear();
+
+		return $adapter;
 	}
 }

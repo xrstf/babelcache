@@ -18,6 +18,9 @@ class Adapter_ZendServerTest extends Adapter_BaseTest {
 			$this->markTestSkipped('ZendServer is not available.');
 		}
 
-		return new ZendServer();
+		$adapter = new ZendServer();
+		$adapter->clear();
+
+		return $adapter;
 	}
 }

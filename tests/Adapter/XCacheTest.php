@@ -18,6 +18,9 @@ class Adapter_XCacheTest extends Adapter_BaseTest {
 			$this->markTestSkipped('XCache is not available.');
 		}
 
-		return new XCache();
+		$adapter = new XCache();
+		$adapter->clear();
+
+		return $adapter;
 	}
 }

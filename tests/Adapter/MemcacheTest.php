@@ -18,6 +18,9 @@ class Adapter_MemcacheTest extends Adapter_BaseTest {
 			$this->markTestSkipped('Memcache is not available.');
 		}
 
-		return $factory->getAdapter('memcache');
+		$adapter = $factory->getAdapter('memcache');
+		$adapter->clear();
+
+		return $adapter;
 	}
 }

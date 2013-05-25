@@ -18,6 +18,9 @@ class Adapter_SQLiteTest extends Adapter_BaseTest {
 			$this->markTestSkipped('SQLite is not available.');
 		}
 
-		return $factory->getAdapter('sqlite');
+		$adapter = $factory->getAdapter('sqlite');
+		$adapter->clear();
+
+		return $adapter;
 	}
 }

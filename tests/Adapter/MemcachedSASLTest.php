@@ -18,6 +18,9 @@ class Adapter_MemcachedSASLTest extends Adapter_BaseTest {
 			$this->markTestSkipped('Memcached SASL is not available.');
 		}
 
-		return $factory->getAdapter('memcachedsasl');
+		$adapter = $factory->getAdapter('memcachedsasl');
+		$adapter->clear();
+
+		return $adapter;
 	}
 }
