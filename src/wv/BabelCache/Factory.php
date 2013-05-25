@@ -336,7 +336,7 @@ abstract class Factory {
 	 * @return array  array(array(host, port, weight))
 	 */
 	public function getMemcacheAddresses() {
-		return array(array('localhost', 11211, 1));
+		return array(array('127.0.0.1', 11211, 1));
 	}
 
 	/**
