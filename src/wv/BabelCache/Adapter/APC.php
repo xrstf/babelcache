@@ -92,7 +92,7 @@ class APC implements AdapterInterface, LockingInterface {
 	 */
 	public function set($key, $value, $expiration = null) {
 		// explicit delete since APC does not allow multiple store() calls during the same request
-		$this->delete($key);
+		$this->remove($key);
 
 		return apc_store($key, serialize($value), $expiration);
 	}
