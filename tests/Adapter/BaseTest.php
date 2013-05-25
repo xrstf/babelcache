@@ -57,6 +57,18 @@ abstract class Adapter_BaseTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * @depends  testSetGet
 	 */
+	public function testGetNonexisting() {
+		$adapter = $this->getAdapter();
+		$found   = null;
+		$result  = $adapter->get('foo', $found);
+
+		$this->assertNull($result);
+		$this->assertFalse($found);
+	}
+
+	/**
+	 * @depends  testSetGet
+	 */
 	public function testClear() {
 		$adapter = $this->getAdapter();
 
