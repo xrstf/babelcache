@@ -195,14 +195,6 @@ class SQLite implements AdapterInterface, LockingInterface {
 		return $stmt->rowCount() > 0;
 	}
 
-	protected function begin() {
-		$this->pdo->beginTransaction();
-	}
-
-	protected function commit() {
-		$this->pdo->commit();
-	}
-
 	protected function getStatement($key) {
 		$where   = '"keyhash" = :hash';
 		$queries = array(

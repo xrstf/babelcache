@@ -53,4 +53,8 @@ class Adapter_BlackholeTest extends PHPUnit_Framework_TestCase {
 		$adapter = new Blackhole();
 		$this->assertTrue($adapter->clear());
 	}
+
+	public function testIsAvailable() {
+		$this->assertTrue(Blackhole::isAvailable());
+	}
 }
