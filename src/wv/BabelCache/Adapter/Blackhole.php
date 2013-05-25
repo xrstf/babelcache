@@ -12,7 +12,6 @@ namespace wv\BabelCache\Adapter;
 
 use wv\BabelCache\AdapterInterface;
 use wv\BabelCache\Factory;
-use wv\BabelCache\LockingInterface;
 
 /**
  * Blackhole Caching
@@ -24,7 +23,7 @@ use wv\BabelCache\LockingInterface;
  *
  * @package BabelCache.Adapter
  */
-class Blackhole implements AdapterInterface, LockingInterface {
+class Blackhole implements AdapterInterface {
 	/**
 	 * Checks whether a caching system is avilable
 	 *
@@ -95,31 +94,6 @@ class Blackhole implements AdapterInterface, LockingInterface {
 	 * @return boolean  true if the flush was successful, else false
 	 */
 	public function clear() {
-		return true;
-	}
-
-	/**
-	 * Locks a key
-	 *
-	 * This method will create a lock for a specific key.
-	 *
-	 * @param  string $key  the key
-	 * @return boolean      true if the lock was aquired, else false
-	 */
-	public function lock($key) {
-		return true;
-	}
-
-
-	/**
-	 * Releases a lock
-	 *
-	 * This method will remove a lock for a specific key.
-	 *
-	 * @param  string $key  the key
-	 * @return boolean      true if the lock was released or there was no lock, else false
-	 */
-	public function unlock($key) {
 		return true;
 	}
 }
