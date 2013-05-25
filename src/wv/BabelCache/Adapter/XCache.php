@@ -35,6 +35,9 @@ class XCache implements AdapterInterface, IncrementInterface {
 	 * @return boolean           true if the cache can be used, else false
 	 */
 	public static function isAvailable(Factory $factory = null) {
+		// XCache sucks: It's not available in CLI, but leaves the cache API available...
+		if (PHP_SAPI === 'cli') return false;
+
 		// XCache will throw a warning if it is misconfigured. We don't want to see that one.
 		return function_exists('xcache_set') && @xcache_set('test', 1, 1);
 	}
