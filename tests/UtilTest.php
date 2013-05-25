@@ -25,10 +25,15 @@ class UtilTest extends PHPUnit_Framework_TestCase {
 
 	public function generateKeyProvider() {
 		$foo = new stdClass();
+		$fp  = fopen(__FILE__, 'r');
 		$foo->x = 1;
 
 		return array(
 			array(1,              '1'),
+			array(3.41,           '3'),
+			array(3.41,           3),
+			array($fp,            ''),
+			array($fp,            null),
 			array(false,          ''),
 			array(false,          'false'),
 			array(false,          0),
