@@ -49,8 +49,9 @@ abstract class Factory {
 			'memcached'     => $prefix.'Memcached',
 			'memcachedsasl' => $prefix.'MemcachedSASL',
 			'memory'        => $prefix.'Memory',
-			'sqlite'        => $prefix.'SQLite',
 			'mysql'         => $prefix.'MySQL',
+			'redis'         => $prefix.'Redis',
+			'sqlite'        => $prefix.'SQLite',
 			'xcache'        => $prefix.'XCache',
 			'zendserver'    => $prefix.'ZendServer'
 		);
@@ -283,6 +284,20 @@ abstract class Factory {
 				break;
 
 			///////////////////////////////////////////////////////////////////////
+			case 'redis':
+
+				$servers = $this->getRedisAddresses();
+
+				if (empty($servers)) {
+					throw new Exception('No Redis servers have been returned from getRedisAddresses()!');
+				}
+
+				$client   = new \Predis\Client($servers);
+				$instance = new $className($client);
+
+				break;
+
+			///////////////////////////////////////////////////////////////////////
 			default:
 				$instance = new $className();
 		}
@@ -335,6 +350,19 @@ abstract class Factory {
 	 * @return mixed  array(username, password) or null to disable SASL support
 	 */
 	public function getMemcacheAuthentication() {
+		return null;
+	}
+
+	/**
+	 * Return Redis server addresses
+	 *
+	 * See https://github.com/nrk/predis#connecting-to-redis for more info on
+	 * what shape the address list can take. Return null to disable the Redis
+	 * adapter.
+	 *
+	 * @return array  [{host: ..., port: ...}] or null
+	 */
+	public function getRedisAddresses() {
 		return null;
 	}
 

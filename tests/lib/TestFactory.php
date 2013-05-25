@@ -52,4 +52,8 @@ class TestFactory extends Factory {
 	public function getMySQLTableName() {
 		return 'tmp';
 	}
+
+	public function getRedisAddresses() {
+		return array('host' => '127.0.0.1', 'port' => 6379);
+	}
 }
