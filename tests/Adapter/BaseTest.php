@@ -123,8 +123,43 @@ abstract class Adapter_BaseTest extends PHPUnit_Framework_TestCase {
 		$this->assertSame(43, $adapter->increment('key'));
 		$this->assertSame(43, $adapter->get('key'));
 
+		// test a larger value
+		$adapter->set('key', 80000);
+		$this->assertSame(80001, $adapter->increment('key'));
+
+		// test a negative value
+		$adapter->set('key', -23);
+		$this->assertSame(-22, $adapter->increment('key'));
+
 		// non-existing keys should not be created
 		$this->assertFalse($adapter->increment('foo'));
 		$this->assertFalse($adapter->exists('foo'));
+	}
+
+	/**
+	 * @depends  testSetGet
+	 */
+	public function testKeysAreCaseSensitive() {
+		$adapter = $this->getAdapter();
+
+		$adapter->set('foo', 'content');
+
+		$this->assertTrue($adapter->exists('foo'));
+		$this->assertFalse($adapter->exists('Foo'));
+		$this->assertFalse($adapter->exists('FOO'));
+
+		$adapter->set('FOO', 'FOO content');
+
+		$this->assertTrue($adapter->exists('foo'));
+		$this->assertFalse($adapter->exists('Foo'));
+		$this->assertTrue($adapter->exists('FOO'));
+
+		$this->assertSame('content',     $adapter->get('foo'));
+		$this->assertSame('FOO content', $adapter->get('FOO'));
+
+		$adapter->remove('foo');
+
+		$this->assertFalse($adapter->exists('foo'));
+		$this->assertTrue($adapter->exists('FOO'));
 	}
 }
