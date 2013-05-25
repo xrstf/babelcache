@@ -20,7 +20,8 @@ use wv\BabelCache\LockingInterface;
  * @package BabelCache.Adapter
  */
 class Memory implements AdapterInterface, LockingInterface {
-	protected $data = array();  ///< array  contains the cached data {key: value, key: value}
+	protected $data  = array();  ///< array  contains the cached data {key: value, key: value}
+	protected $locks = array();  ///< array  contains the locked keys
 
 	/**
 	 * Checks whether a caching system is avilable
@@ -97,7 +98,8 @@ class Memory implements AdapterInterface, LockingInterface {
 	 * @return boolean  true if the flush was successful, else false
 	 */
 	public function clear() {
-		$this->data = array();
+		$this->data  = array();
+		$this->locks = array();
 
 		return true;
 	}
@@ -111,6 +113,9 @@ class Memory implements AdapterInterface, LockingInterface {
 	 * @return boolean      true if the lock was aquired, else false
 	 */
 	public function lock($key) {
+		if (isset($this->locks[$key])) return false;
+		$this->locks[$key] = 1;
+
 		return true;
 	}
 
@@ -123,6 +128,9 @@ class Memory implements AdapterInterface, LockingInterface {
 	 * @return boolean      true if the lock was released or there was no lock, else false
 	 */
 	public function unlock($key) {
+		if (!isset($this->locks[$key])) return false;
+		unset($this->locks[$key]);
+
 		return true;
 	}
 }
