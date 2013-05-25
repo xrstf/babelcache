@@ -61,7 +61,7 @@ class Memcached implements AdapterInterface, IncrementInterface, LockingInterfac
 		return $this->memcached;
 	}
 
-	public function addServer($host, $port = 11211, $weight = 0) {
+	public function addServer($host, $port = 11211, $weight = 1) {
 		// check if this adapter is already connected to the given server
 
 		$servers = $this->memcached->getServerList();
