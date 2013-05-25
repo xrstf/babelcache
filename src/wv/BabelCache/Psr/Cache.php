@@ -12,6 +12,7 @@ namespace wv\BabelCache\Psr;
 
 use Psr\Cache\CacheInterface;
 use Psr\Cache\CacheItemInterface;
+use Psr\Cache\CacheMultipleInterface;
 use wv\BabelCache\Adapter\AdapterInterface;
 
 /**
@@ -24,7 +25,7 @@ use wv\BabelCache\Adapter\AdapterInterface;
  *
  * @package BabelCache.Psr
  */
-class Cache implements CacheInterface {
+class Cache implements CacheInterface, CacheMultipleInterface {
 	protected $adapter;
 
 	public function __construct(AdapterInterface $adapter) {
