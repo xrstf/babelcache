@@ -80,14 +80,18 @@ class Filesystem implements AdapterInterface, LockingInterface {
 
 		// old filestats?
 		if (!$handle) {
+			// @codeCoverageIgnoreStart
 			clearstatcache();
 			return null;
+			// @codeCoverageIgnoreEnd
 		}
 
 		// try to lock the file
 		if (!flock($handle, LOCK_SH)) {
+			// @codeCoverageIgnoreStart
 			fclose($handle);
 			return null;
+			// @codeCoverageIgnoreEnd
 		}
 
 		// read it
@@ -171,9 +175,11 @@ class Filesystem implements AdapterInterface, LockingInterface {
 
 			return !!$status;
 		}
+		// @codeCoverageIgnoreStart
 		catch (\Exception $e) {
 			return false;
 		}
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
