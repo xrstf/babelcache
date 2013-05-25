@@ -174,4 +174,29 @@ abstract class Adapter_BaseTest extends PHPUnit_Framework_TestCase {
 		$this->assertFalse($adapter->exists('foo'));
 		$this->assertTrue($adapter->exists('FOO'));
 	}
+
+	public function testLocking() {
+		$adapter = $this->getAdapter();
+
+		if (!($adapter instanceof wv\BabelCache\LockingInterface)) {
+			$this->markTestSkipped('Adapter does not implement LockingInterface.');
+		}
+
+		// we should only be able to lock once
+		$this->assertTrue($adapter->lock('foo'));
+		$this->assertFalse($adapter->lock('foo'));
+
+		// a clear should remove the lock as well
+		$adapter->clear();
+
+		// ... so we can lock again
+		$this->assertTrue($adapter->lock('foo'));
+
+		// unlocking should have the same effect
+		$this->assertTrue($adapter->unlock('foo'));
+		$this->assertTrue($adapter->lock('foo'));
+
+		// unlocking a non-existing lock for a key should not work
+		$this->assertFalse($adapter->unlock('bar'));
+	}
 }

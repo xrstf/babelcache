@@ -205,7 +205,7 @@ class Filesystem implements AdapterInterface, LockingInterface {
 
 		clearstatcache();
 
-		return is_dir($dir) ? rmdir($dir) : true;
+		return is_dir($dir) ? rmdir($dir) : false;
 	}
 
 	/**
