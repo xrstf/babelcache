@@ -3,7 +3,8 @@
 BabelCache is a feature-complete caching library for PHP 5.3+. It supports a
 wide range of adapters, namespaced caching and provides an experimental
 support for the [PSR Cache Proposal](https://github.com/php-fig/fig-standards/pull/96).
-It's well tested and ready for production use.
+
+**BabelCache 2.0 is still in development and not yet ready!**
 
 Supported caching backends are:
 
