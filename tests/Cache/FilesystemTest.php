@@ -8,11 +8,13 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-use wv\BabelCache\Adapter\Memory;
-use wv\BabelCache\Cache\Generic;
-
-class Cache_GenericTest extends Cache_BaseTest {
+class Cache_FilesystemTest extends Cache_BaseTest {
 	protected function getCache() {
-		return new Generic(new Memory());
+		$factory = new TestFactory('fscache');
+		$cache   = $factory->getCache('filesystem');
+
+		$cache->clear('t', true);
+
+		return $cache;
 	}
 }
