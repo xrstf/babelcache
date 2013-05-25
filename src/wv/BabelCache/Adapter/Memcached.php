@@ -61,24 +61,30 @@ class Memcached implements AdapterInterface, IncrementInterface, LockingInterfac
 		return $this->memcached;
 	}
 
+	/**
+	 * Add a server to the rotation
+	 *
+	 * Note that this does not actually connect to the server yet, so you cannot
+	 * use this to check for valid hosts.
+	 *
+	 * @param string $host    the host name
+	 * @param int    $port    the port
+	 * @param int    $weight  weight as integer / decides ammount of keys saved on this server
+	 */
 	public function addServer($host, $port = 11211, $weight = 1) {
 		// check if this adapter is already connected to the given server
-
 		$servers = $this->memcached->getServerList();
 
 		if (is_array($servers)) {
 			foreach ($servers as $server) {
 				if ($server['host'] == $host && $server['port'] == $port) {
-					return true;
+					return;
 				}
 			}
 		}
 
 		// add server connection
-
-		if (!$this->memcached->addServer($host, $port, $weight)) {
-			throw new Exception('Could not connect to memcached daemon @ '.$host.':'.$port.'!');
-		}
+		$this->memcached->addServer($host, $port, $weight);
 	}
 
 	public function getMemcachedVersion() {

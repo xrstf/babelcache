@@ -23,4 +23,11 @@ class Adapter_MemcacheTest extends Adapter_BaseTest {
 
 		return $adapter;
 	}
+
+	public function testGetMemcached() {
+		$adapter   = $this->getAdapter();
+		$memcached = $adapter->getMemcached();
+
+		$this->assertInstanceOf('Memcache', $memcached);
+	}
 }
