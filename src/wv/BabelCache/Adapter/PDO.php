@@ -20,9 +20,6 @@ use wv\BabelCache\LockingInterface;
  * This adapter will use a PDO database to cache data. The DBMS specific DDL
  * statements can be found in the db-schema directory.
  *
- * The given PDO connection and table must point to a transactional storage
- * (i.e. no MyISAM tables) DBMS.
- *
  * @package BabelCache.Adapter
  */
 abstract class PDO implements AdapterInterface, LockingInterface {
