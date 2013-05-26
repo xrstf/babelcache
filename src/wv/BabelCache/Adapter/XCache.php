@@ -54,8 +54,11 @@ class XCache implements AdapterInterface, IncrementInterface {
 	 */
 	public function get($key, &$found = null) {
 		$found = xcache_isset($key);
+		if (!$found) return null;
 
-		return $found ? unserialize(xcache_get($key)) : null;
+		$value = xcache_get($key);
+
+		return ctype_digit($value) ? (int) $value : unserialize($value);
 	}
 
 	/**
@@ -69,6 +72,9 @@ class XCache implements AdapterInterface, IncrementInterface {
 	 * @return boolean        true on success, else false
 	 */
 	public function set($key, $value, $expiration = null) {
+		// store integers as plain values, so we can easily increment them.
+		$value = is_int($value) ? $value : serialize($value);
+
 		return xcache_set($key, serialize($value), $expiration);
 	}
 
