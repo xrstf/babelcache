@@ -182,18 +182,35 @@ abstract class Adapter_BaseTest extends PHPUnit_Framework_TestCase {
 			$this->markTestSkipped('Adapter does not implement LockingInterface.');
 		}
 
+		// there should be no lock already
+		$this->assertFalse($adapter->hasLock('foo'));
+		$this->assertFalse($adapter->hasLock('bar'));
+
 		// we should only be able to lock once
 		$this->assertTrue($adapter->lock('foo'));
 		$this->assertFalse($adapter->lock('foo'));
 
+		// but locking other keys should still work
+		$this->assertTrue($adapter->lock('bar'));
+
+		// now we have locks
+		$this->assertTrue($adapter->hasLock('foo'));
+		$this->assertTrue($adapter->hasLock('bar'));
+
 		// a clear should remove the lock as well
 		$adapter->clear();
 
+		// locks are gone
+		$this->assertFalse($adapter->hasLock('foo'));
+		$this->assertFalse($adapter->hasLock('bar'));
+
 		// ... so we can lock again
 		$this->assertTrue($adapter->lock('foo'));
+		$this->assertTrue($adapter->hasLock('foo'));
 
 		// unlocking should have the same effect
 		$this->assertTrue($adapter->unlock('foo'));
+		$this->assertFalse($adapter->hasLock('foo'));
 		$this->assertTrue($adapter->lock('foo'));
 
 		// unlocking a non-existing lock for a key should not work
