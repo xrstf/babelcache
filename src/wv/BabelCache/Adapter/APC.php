@@ -69,8 +69,7 @@ class APC implements AdapterInterface, LockingInterface {
 	/**
 	 * Gets a value out of the cache
 	 *
-	 * This method will try to read the value from the cache. If it's not found,
-	 * $default will be returned.
+	 * This method will try to read the value from the cache.
 	 *
 	 * @param  string  $key    the object key
 	 * @param  boolean $found  will be set to true or false when the method is finished
