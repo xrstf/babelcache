@@ -376,26 +376,14 @@ class Filesystem implements CacheInterface {
 	 */
 	protected function makeDir($dir) {
 		if (!is_dir($dir)) {
+			// @codeCoverageIgnoreStart
 			if (!@mkdir($dir, $this->dirPerm, true)) {
 				throw new Exception('Can\'t create directory in '.$dir.'.');
 			}
+			// @codeCoverageIgnoreEnd
 
 			clearstatcache();
 		}
-	}
-
-	/**
-	 * Cut out part of a hash
-	 *
-	 * This method will return the first 2 characters of a given element hash.
-	 * The partial hash is used to evenly distribute the cache elements in a
-	 * single namespace.
-	 *
-	 * @param  string $hash  the element's hash
-	 * @return string        the first 2 characters of that hash
-	 */
-	protected function cutHash($hash) {
-		return substr($hash, 0, 2);
 	}
 
 	protected function deleteFiles($root) {
@@ -413,6 +401,6 @@ class Filesystem implements CacheInterface {
 		clearstatcache();
 		error_reporting($level);
 
-		return $status;
+		return !!$status;
 	}
 }

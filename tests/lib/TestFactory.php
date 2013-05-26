@@ -15,6 +15,13 @@ use wv\BabelCache\Adapter\MySQL;
 class TestFactory extends Factory {
 	protected $cacheDir;
 
+	public $sqliteConnection   = true;
+	public $sqliteTableName    = 'tmp';
+	public $mysqlConnection    = true;
+	public $mysqlTableName     = 'tmp';
+	public $redisAddresses     = array('host' => '127.0.0.1', 'port' => 6379);
+	public $memcachedAddresses = array(array('127.0.0.1', 11211, 1));
+
 	public function __construct($cacheDir) {
 		parent::__construct();
 
@@ -29,31 +36,47 @@ class TestFactory extends Factory {
 		return $dir;
 	}
 
-	public function getSQLiteConnection() {
-		$connection = SQLite::connect(':memory:');
-		$connection->exec('DROP TABLE IF EXISTS "tmp"');
-		$connection->exec('CREATE TABLE "tmp" ("keyhash" VARCHAR(50), "payload" BLOB, PRIMARY KEY ("keyhash"))');
+	public function getMemcachedAddresses() {
+		return $this->memcachedAddresses;
+	}
 
-		return $connection;
+	public function getSQLiteConnection() {
+		if ($this->sqliteConnection === true) {
+			$connection = SQLite::connect(':memory:');
+			$connection->exec('DROP TABLE IF EXISTS "tmp"');
+			$connection->exec('CREATE TABLE "tmp" ("keyhash" VARCHAR(50), "payload" BLOB, PRIMARY KEY ("keyhash"))');
+
+			return $connection;
+		}
+
+		return $this->sqliteConnection;
 	}
 
 	public function getSQLiteTableName() {
-		return 'tmp';
+		return $this->sqliteTableName;
 	}
 
 	public function getMySQLConnection() {
-		$connection = MySQL::connect('localhost', 'develop', 'develop', 'test');
-		$connection->exec('DROP TABLE IF EXISTS tmp');
-		$connection->exec('CREATE TABLE tmp (keyhash VARCHAR(50), payload BLOB, PRIMARY KEY (keyhash))');
+		static $called = 0;
 
-		return $connection;
+		if ($this->mysqlConnection === true) {
+			$host       = ++$called % 2 ? 'localhost' : 'localhost:3306';
+			$connection = MySQL::connect($host, 'develop', 'develop', 'test');
+
+			$connection->exec('DROP TABLE IF EXISTS tmp');
+			$connection->exec('CREATE TABLE tmp (keyhash VARCHAR(50), payload BLOB, PRIMARY KEY (keyhash))');
+
+			return $connection;
+		}
+
+		return $this->mysqlConnection;
 	}
 
 	public function getMySQLTableName() {
-		return 'tmp';
+		return $this->mysqlTableName;
 	}
 
 	public function getRedisAddresses() {
-		return array('host' => '127.0.0.1', 'port' => 6379);
+		return $this->redisAddresses;
 	}
 }

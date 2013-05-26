@@ -92,9 +92,9 @@ class MemcachedSASL implements AdapterInterface, IncrementInterface, LockingInte
 		if (!$factory) return true;
 
 		// no auth, no fun (use the other adapters in this case)
-		if ($factory->getMemcacheAuthentication() === null) return false;
+		if ($factory->getMemcachedAuthentication() === null) return false;
 
-		$servers = $factory->getMemcacheAddresses();
+		$servers = $factory->getMemcachedAddresses();
 
 		return !empty($servers);
 	}

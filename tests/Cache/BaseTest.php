@@ -84,6 +84,41 @@ abstract class Cache_BaseTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * @depends  testSetGet
 	 */
+	public function testNonRecursiveClear() {
+		$cache = $this->getCache();
+
+		$cache->set('t',         'key', 'value');
+		$cache->set('t.foo',     'key', 'value');
+		$cache->set('t.foo.foo', 'key', 'value');
+
+		$this->assertTrue($cache->clear('t.foo', false));
+		$this->assertTrue($cache->exists('t', 'key'));
+		$this->assertFalse($cache->exists('t.foo', 'key'));
+
+		// This can be true or false. Both are perfectly fine.
+		$this->assertInternalType('boolean', $cache->exists('t.foo.foo', 'key'));
+	}
+
+	/**
+	 * @depends            testClear
+	 * @expectedException  wv\BabelCache\Exception
+	 * @dataProvider       emptyValuesProvider
+	 */
+	public function testClearShouldRequireANamespace($namespace) {
+		$this->getCache()->clear($namespace);
+	}
+
+	public function emptyValuesProvider() {
+		return array(
+			array(null),
+			array(false),
+			array('')
+		);
+	}
+
+	/**
+	 * @depends  testSetGet
+	 */
 	public function testOverwritingValues() {
 		$cache = $this->getCache();
 

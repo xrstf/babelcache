@@ -23,4 +23,11 @@ class Adapter_RedisTest extends Adapter_BaseTest {
 
 		return $adapter;
 	}
+
+	public function testGetClient() {
+		$adapter = $this->getAdapter();
+		$client  = $adapter->getClient();
+
+		$this->assertInstanceOf('Predis\Client', $client);
+	}
 }

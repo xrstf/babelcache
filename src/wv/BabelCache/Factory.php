@@ -186,10 +186,13 @@ abstract class Factory {
 	 * @return Psr\Cache\CacheInterface  a fresh cache instance
 	 */
 	public function getPsrCache($adapter) {
+		// We can't test this yet...
+		// @codeCoverageIgnoreStart
 		$adapter = $this->getAdapter($adapter);
 		$cache   = new Psr\Cache($adapter);
 
 		return $cache;
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -206,103 +209,109 @@ abstract class Factory {
 	 */
 	protected function construct($name, $className) {
 		switch ($name) {
-			///////////////////////////////////////////////////////////////////////
-			case 'memcache':
-
-				$servers = $this->getMemcacheAddresses();
-
-				if (empty($servers)) {
-					throw new Exception('No memcached servers have been returned from getMemcacheAddresses()!');
-				}
-
-				$instance = new $className();
-
-				foreach ($servers as $server) {
-					$instance->addServer($server[0], $server[1], isset($server[2]) ? $server[2] : 1);
-				}
-
-				break;
-
-			///////////////////////////////////////////////////////////////////////
-			case 'memcached':
-
-				$servers = $this->getMemcacheAddresses();
-
-				if (empty($servers)) {
-					throw new Exception('No memcached servers have been returned from getMemcacheAddresses()!');
-				}
-
-				$instance = new $className($this->getPrefix()); // care for a persistent connection
-
-				foreach ($servers as $server) {
-					$instance->addServer($server[0], $server[1], isset($server[2]) ? $server[2] : 1);
-				}
-
-				break;
-
-			///////////////////////////////////////////////////////////////////////
-			case 'memcachedsasl':
-
-				$servers = $this->getMemcacheAddresses();
-
-				if (empty($servers)) {
-					throw new Exception('No memcached servers have been returned from getMemcacheAddresses()!');
-				}
-
-				$server   = reset($servers);
-				$auth     = $this->getMemcacheAuthentication();
-				$instance = new $className($server[0], $server[1]);
-
-				$instance->authenticate($auth[0], $auth[1]);
-
-				break;
-
-			///////////////////////////////////////////////////////////////////////
-			case 'filesystem':
-
-				$path     = $this->getCacheDirectory();
-				$instance = new $className($path);
-
-				break;
-
-			///////////////////////////////////////////////////////////////////////
-			case 'sqlite':
-
-				$conn     = $this->getSQLiteConnection();
-				$table    = $this->getSQLiteTableName();
-				$instance = new $className($conn, $table);
-
-				break;
-
-			///////////////////////////////////////////////////////////////////////
-			case 'mysql':
-
-				$conn     = $this->getMySQLConnection();
-				$table    = $this->getMySQLTableName();
-				$instance = new $className($conn, $table);
-
-				break;
-
-			///////////////////////////////////////////////////////////////////////
-			case 'redis':
-
-				$servers = $this->getRedisAddresses();
-
-				if (empty($servers)) {
-					throw new Exception('No Redis servers have been returned from getRedisAddresses()!');
-				}
-
-				$client   = new \Predis\Client($servers);
-				$instance = new $className($client);
-
-				break;
-
-			///////////////////////////////////////////////////////////////////////
-			default:
-				$instance = new $className();
+			case 'memcache':      $instance = $this->constructMemcache($className);      break;
+			case 'memcached':     $instance = $this->constructMemcached($className);     break;
+			case 'memcachedsasl': $instance = $this->constructMemcachedSASL($className); break;
+			case 'filesystem':    $instance = $this->constructFilesystem($className);    break;
+			case 'sqlite':        $instance = $this->constructSQLite($className);        break;
+			case 'mysql':         $instance = $this->constructMySQL($className);         break;
+			case 'redis':         $instance = $this->constructRedis($className);         break;
+			default:              $instance = new $className();
 		}
 
 		return $instance;
+	}
+
+	protected function constructMemcache($className) {
+		$servers = $this->getMemcachedAddresses();
+
+		if (empty($servers)) {
+			throw new Exception('No memcached servers have been returned from getMemcachedAddresses()!');
+		}
+
+		// @codeCoverageIgnoreStart
+		$instance = new $className();
+
+		foreach ($servers as $server) {
+			$instance->addServer($server[0], $server[1], isset($server[2]) ? $server[2] : 1);
+		}
+
+		return $instance;
+		// @codeCoverageIgnoreEnd
+	}
+
+	protected function constructMemcached($className) {
+		$servers = $this->getMemcachedAddresses();
+
+		if (empty($servers)) {
+			throw new Exception('No memcached servers have been returned from getMemcachedAddresses()!');
+		}
+
+		// @codeCoverageIgnoreStart
+		$instance = new $className($this->getPrefix()); // care for a persistent connection
+
+		foreach ($servers as $server) {
+			$instance->addServer($server[0], $server[1], isset($server[2]) ? $server[2] : 1);
+		}
+
+		return $instance;
+		// @codeCoverageIgnoreEnd
+	}
+
+	protected function constructMemcachedSASL($className) {
+		$servers = $this->getMemcachedAddresses();
+
+		if (empty($servers)) {
+			throw new Exception('No memcached servers have been returned from getMemcachedAddresses()!');
+		}
+
+		// @codeCoverageIgnoreStart
+		$server   = reset($servers);
+		$auth     = $this->getMemcachedAuthentication();
+		$instance = new $className($server[0], $server[1]);
+
+		$instance->authenticate($auth[0], $auth[1]);
+
+		return $instance;
+		// @codeCoverageIgnoreEnd
+	}
+
+	protected function constructFilesystem($className) {
+		$path     = $this->getCacheDirectory();
+		$instance = new $className($path);
+
+		return $instance;
+	}
+
+	protected function constructSQLite($className) {
+		$conn     = $this->getSQLiteConnection();
+		$table    = $this->getSQLiteTableName();
+		$instance = new $className($conn, $table);
+
+		return $instance;
+	}
+
+	protected function constructMySQL($className) {
+		$conn     = $this->getMySQLConnection();
+		$table    = $this->getMySQLTableName();
+		$instance = new $className($conn, $table);
+
+		return $instance;
+	}
+
+	protected function constructRedis($className) {
+		$servers = $this->getRedisAddresses();
+
+		if (empty($servers)) {
+			throw new Exception('No Redis servers have been returned from getRedisAddresses()!');
+		}
+
+		// @codeCoverageIgnoreStart
+		$client   = new \Predis\Client($servers);
+		$instance = new $className($client);
+
+		return $instance;
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -328,19 +337,19 @@ abstract class Factory {
 	}
 
 	/**
-	 * Return memcache server addresses
+	 * Return memcached server addresses
 	 *
 	 * This method should return a list of servers, each one being a tripel of
 	 * [host, port, weight].
 	 *
 	 * @return array  array(array(host, port, weight))
 	 */
-	public function getMemcacheAddresses() {
-		return array(array('127.0.0.1', 11211, 1));
+	public function getMemcachedAddresses() {
+		return null;
 	}
 
 	/**
-	 * Return memcache SASL auth data
+	 * Return memcached SASL auth data
 	 *
 	 * This method should return a tupel, consisting of the username and the
 	 * password for the memcached daemon. If this method returns null, it's
@@ -349,7 +358,7 @@ abstract class Factory {
 	 *
 	 * @return mixed  array(username, password) or null to disable SASL support
 	 */
-	public function getMemcacheAuthentication() {
+	public function getMemcachedAuthentication() {
 		return null;
 	}
 

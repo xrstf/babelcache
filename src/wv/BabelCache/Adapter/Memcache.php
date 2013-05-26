@@ -46,13 +46,24 @@ class Memcache implements AdapterInterface, IncrementInterface, LockingInterface
 		if (!class_exists('Memcache')) return false;
 		if (!$factory) return true;
 
-		$servers = $factory->getMemcacheAddresses();
+		$servers = $factory->getMemcachedAddresses();
 
 		return !empty($servers);
 	}
 
 	/**
 	 * Get wrapped Memcache instance
+	 *
+	 * @return Memcache
+	 */
+	public function getMemcache() {
+		return $this->memcached;
+	}
+
+	/**
+	 * Get wrapped Memcache instance
+	 *
+	 * This method is an alias for getMemcache().
 	 *
 	 * @return Memcache
 	 */

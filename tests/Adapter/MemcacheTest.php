@@ -24,10 +24,37 @@ class Adapter_MemcacheTest extends Adapter_BaseTest {
 		return $adapter;
 	}
 
+	public function testGetMemcache() {
+		$adapter  = $this->getAdapter();
+		$memcache = $adapter->getMemcache();
+
+		$this->assertInstanceOf('Memcache', $memcache);
+	}
+
 	public function testGetMemcached() {
 		$adapter   = $this->getAdapter();
 		$memcached = $adapter->getMemcached();
 
 		$this->assertInstanceOf('Memcache', $memcached);
+	}
+
+	public function testAddServerEx() {
+		// at least call the method and see if it blows up
+		$this->getAdapter()->addServerEx('127.0.0.2');
+		$this->assertTrue(true);
+	}
+
+	public function testGetVersion() {
+		$version = $this->getAdapter()->getMemcachedVersion();
+
+		$this->assertInternalType('string', $version);
+		$this->assertNotEmpty($version);
+	}
+
+	public function testGetStats() {
+		$stats = $this->getAdapter()->getStats();
+
+		$this->assertInternalType('array', $stats);
+		$this->assertNotEmpty($stats);
 	}
 }

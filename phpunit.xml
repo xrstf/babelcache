@@ -13,6 +13,9 @@
 	<filter>
 		<whitelist>
 			<directory>src</directory>
+			<exclude>
+				<file>src/wv/BabelCache/Adapter/XCache.php</file>
+			</exclude>
 		</whitelist>
 	</filter>
 </phpunit>

@@ -52,9 +52,11 @@ class APC implements AdapterInterface, LockingInterface {
 		static $avail = null;
 
 		if ($avail === null) {
+			// @codeCoverageIgnoreStart
 			if (!function_exists('apc_store')) {
 				$avail = false;
 			}
+			// @codeCoverageIgnoreEnd
 			else {
 				apc_delete('test');
 				$avail = apc_store('test', 1, 1);
@@ -118,9 +120,11 @@ class APC implements AdapterInterface, LockingInterface {
 			return apc_exists($key);
 		}
 
+		// @codeCoverageIgnoreStart
 		apc_fetch($key, $found);
 
 		return $found;
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**

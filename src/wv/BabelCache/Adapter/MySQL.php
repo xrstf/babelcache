@@ -44,9 +44,11 @@ class MySQL extends PDO {
 	 * @return \PDO              the database connection instance
 	 */
 	public static function connect($host, $user, $password, $database) {
+		// @codeCoverageIgnoreStart
 		if (strpos($host, '/') !== false) {
 			$dsn = 'mysql:unix_socket='.$host;
 		}
+		// @codeCoverageIgnoreEnd
 		else {
 			$parts = explode(':', $host);
 
