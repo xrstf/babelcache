@@ -214,6 +214,16 @@ class Filesystem implements AdapterInterface, LockingInterface {
 	}
 
 	/**
+	 * Check if a key is locked
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the key is locked, else false
+	 */
+	public function hasLock($key) {
+		return is_dir($this->dataDir.'/lock-'.sha1($key));
+	}
+
+	/**
 	 * Gets the full filename of a cache element
 	 *
 	 * @param  string $key  element key

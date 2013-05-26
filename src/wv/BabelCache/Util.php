@@ -143,4 +143,40 @@ abstract class Util {
 
 		return $fullKey;
 	}
+
+	/**
+	 * Waits for a lock to be released
+	 *
+	 * This method will wait for a specific amount of time for the lock to be
+	 * released. For this, it constantly checks the lock (tweak the check
+	 * interval with the last parameter).
+	 *
+	 * When the maximum waiting time elapsed, the $default value will be
+	 * returned. Else the value will be read from the cache.
+	 *
+	 * @param  CacheInterface $cache          the cache to work on
+	 * @param  string         $namespace      the namespace
+	 * @param  string         $key            the key
+	 * @param  mixed          $default        the value to return if the lock does not get released
+	 * @param  int            $maxWaitTime    the maximum waiting time (in seconds)
+	 * @param  int            $checkInterval  the check interval (in milliseconds)
+	 * @return mixed                          the value from the cache if the lock was released, else $default
+	 */
+	public static function waitForLockRelease(CacheInterface $cache, $namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 750) {
+		$start  = microtime(true);
+		$waited = 0;
+
+		$checkInterval *= 1000;
+
+		while ($waited < $maxWaitTime && $cache->hasLock($namespace, $key)) {
+			usleep($checkInterval);
+			$waited = microtime(true) - $start;
+		}
+
+		if (!$cache->hasLock($namespace, $key)) {
+			return $cache->get($namespace, $key, $default);
+		}
+
+		return $default;
+	}
 }

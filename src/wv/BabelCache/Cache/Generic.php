@@ -190,7 +190,20 @@ class Generic implements CacheInterface {
 	public function lock($namespace, $key) {
 		$key = $this->getFullKey($namespace, $key);
 
-		return $this->lockKey($key);
+		if ($this->adapter instanceof LockingInterface) {
+			return $this->adapter->lock($key);
+		}
+		else {
+			$fullKey = $this->getPrefixed('lock:'.$key);
+			$isset   = $this->adapter->exists($fullKey);
+
+			// lock exists already
+			if ($isset === true) {
+				return false;
+			}
+
+			return $this->adapter->set($fullKey, 1);
+		}
 	}
 
 	/**
@@ -205,42 +218,40 @@ class Generic implements CacheInterface {
 	public function unlock($namespace, $key) {
 		$key = $this->getFullKey($namespace, $key);
 
-		return $this->unlockKey($key);
+		if ($this->adapter instanceof LockingInterface) {
+			return $this->adapter->unlock($key);
+		}
+		else {
+			$fullKey = $this->getPrefixed('lock:'.$key);
+			$isset   = $this->adapter->exists($fullKey);
+
+			// no lock, everything's shiny
+			if ($isset === false) {
+				return true;
+			}
+
+			return $this->adapter->remove($fullKey);
+		}
 	}
 
 	/**
-	 * Waits for a lock to be released
+	 * Check if a key is locked
 	 *
-	 * This method will wait for a specific amount of time for the lock to be
-	 * released. For this, it constantly checks the lock (tweak the check
-	 * interval with the last parameter).
-	 *
-	 * When the maximum waiting time elapsed, the $default value will be
-	 * returned. Else the value will be read from the cache.
-	 *
-	 * @param  string $namespace      the namespace
-	 * @param  string $key            the key
-	 * @param  mixed  $default        the value to return if the lock does not get released
-	 * @param  int    $maxWaitTime    the maximum waiting time (in seconds)
-	 * @param  int    $checkInterval  the check interval (in milliseconds)
-	 * @return mixed                  the value from the cache if the lock was released, else $default
+	 * @param  string $namespace  the namespace
+	 * @param  string $key        the key
+	 * @return boolean            true if the key is locked, else false
 	 */
-	public function waitForLockRelease($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 750) {
-		$fullKey        = $this->getFullKey($namespace, $key);
-		$start          = microtime(true);
-		$waited         = 0;
-		$checkInterval *= 1000;
+	public function hasLock($namespace, $key) {
+		$key = $this->getFullKey($namespace, $key);
 
-		while ($waited < $maxWaitTime && $this->hasLock($fullKey)) {
-			usleep($checkInterval);
-			$waited = microtime(true) - $start;
+		if ($this->adapter instanceof LockingInterface) {
+			return $this->adapter->hasLock($key);
 		}
+		else {
+			$fullKey = $this->getPrefixed('lock:'.$key);
 
-		if (!$this->hasLock($fullKey)) {
-			return $this->get($namespace, $key, $default);
+			return $this->adapter->exists($fullKey);
 		}
-
-		return $default;
 	}
 
 	/**
@@ -377,76 +388,6 @@ class Generic implements CacheInterface {
 	protected function setVersion($path, $version) {
 		$this->adapter->set($this->getPrefixed('version:'.$path), $version);
 		$this->versions[$path] = $version;
-	}
-
-	/**
-	 * Checks if a key is locked
-	 *
-	 * @param  string $key  the key to check
-	 * @return boolean      true if a lock exists, else false
-	 */
-	protected function hasLock($key) {
-		$fullKey = $this->getPrefixed('lock:'.$key);
-		$hasLock = $this->lockKey($key) === false;
-
-		// If we just created an accidental lock, remove it.
-		if (!$hasLock) {
-			$this->unlockKey($key);
-		}
-
-		return $hasLock;
-	}
-
-	/**
-	 * Lock a key
-	 *
-	 * The key is supposed to be the full key, i.e. a combination of namespace
-	 * and element key.
-	 *
-	 * @param  string $key  the key to lock
-	 * @return boolean      true if the lock was aquired, else false
-	 */
-	protected function lockKey($key) {
-		if ($this->adapter instanceof LockingInterface) {
-			return $this->adapter->lock($key);
-		}
-		else {
-			$fullKey = $this->getPrefixed('lock:'.$key);
-			$isset   = $this->adapter->exists($fullKey);
-
-			// lock exists already
-			if ($isset === true) {
-				return false;
-			}
-
-			return $this->adapter->set($fullKey, 1);
-		}
-	}
-
-	/**
-	 * Unlock a key
-	 *
-	 * The key is supposed to be the full key, i.e. a combination of namespace
-	 * and element key.
-	 *
-	 * @param  string $key  the key to unlock
-	 * @return boolean      true if the lock was released or there was no lock, else false
-	 */
-	protected function unlockKey($key) {
-		if ($this->adapter instanceof LockingInterface) {
-			return $this->adapter->unlock($key);
-		}
-		else {
-			$fullKey = $this->getPrefixed('lock:'.$key);
-			$isset   = $this->adapter->exists($fullKey);
-
-			// no lock, everything's shiny
-			if ($isset === false) {
-				return true;
-			}
-
-			return $this->adapter->remove($fullKey);
-		}
 	}
 
 	/**

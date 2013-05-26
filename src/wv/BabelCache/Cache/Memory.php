@@ -18,7 +18,8 @@ use wv\BabelCache\CacheInterface;
  * @package BabelCache.Cache
  */
 class Memory implements CacheInterface {
-	protected $data = array();  ///< array  contains the cached data {key: value, key: value}
+	protected $data  = array();  ///< array  contains the cached data {key: value, key: value}
+	protected $locks = array();  ///< array  contains the locked keys
 
 	/**
 	 * Sets a value
@@ -82,39 +83,34 @@ class Memory implements CacheInterface {
 	/**
 	 * Removes all values in a given namespace
 	 *
-	 * This method will remove all values by making them unavailable. For this,
-	 * the version number of the flushed namespace is increased by one.
-	 *
-	 * Implementations are *not* required to support non-recursive flushes. If
-	 * those are not supported, a recursive flush must be performed instead.
-	 * Userland code should assume that every clear operation is recursive and
-	 * the $recursive flag is a mere optimization hint.
-	 *
 	 * @param  string  $namespace  the namespace to use
 	 * @param  boolean $recursive  if set to true, all child namespaces will be cleared as well
 	 * @return boolean             true if the flush was successful, else false
 	 */
 	public function clear($namespace, $recursive = false) {
-		if (empty($this->data)) {
-			return true;
-		}
+		$this->data  = $this->clearArray($this->data, $namespace, $recursive);
+		$this->locks = $this->clearArray($this->locks, $namespace, $recursive);
 
-		unset($this->data[$namespace]);
+		return true;
+	}
+
+	protected function clearArray($array, $namespace, $recursive) {
+		unset($array[$namespace]);
 
 		if (!$recursive) {
-			return true;
+			return $array;
 		}
 
-		$pattern    = "$namespace*";
-		$namespaces = array_keys($this->data);
+		$pattern    = "$namespace.*";
+		$namespaces = array_keys($array);
 
 		foreach ($namespaces as $pkg) {
 			if (fnmatch($pattern, $pkg)) {
-				unset($this->data[$pkg]);
+				unset($array[$pkg]);
 			}
 		}
 
-		return true;
+		return $array;
 	}
 
 	/**
@@ -128,6 +124,9 @@ class Memory implements CacheInterface {
 	 * @return boolean            true if the lock was aquired, else false
 	 */
 	public function lock($namespace, $key) {
+		if (isset($this->locks[$namespace][$key])) return false;
+		$this->locks[$namespace][$key] = 1;
+
 		return true;
 	}
 
@@ -141,28 +140,21 @@ class Memory implements CacheInterface {
 	 * @return boolean            true if the lock was released, else false
 	 */
 	public function unlock($namespace, $key) {
+		if (!isset($this->locks[$namespace][$key])) return false;
+		unset($this->locks[$namespace][$key]);
+
 		return true;
 	}
 
 	/**
-	 * Waits for a lock to be released
+	 * Check if a key is locked
 	 *
-	 * This method will wait for a specific amount of time for the lock to be
-	 * released. For this, it constantly checks the lock (tweak the check
-	 * interval with the last parameter).
-	 *
-	 * When the maximum waiting time elapsed, the $default value will be
-	 * returned. Else the value will be read from the cache.
-	 *
-	 * @param  string $namespace      the namespace
-	 * @param  string $key            the key
-	 * @param  mixed  $default        the value to return if the lock does not get released
-	 * @param  int    $maxWaitTime    the maximum waiting time (in seconds)
-	 * @param  int    $checkInterval  the check interval (in milliseconds)
-	 * @return mixed                  the value from the cache if the lock was released, else $default
+	 * @param  string $namespace  the namespace
+	 * @param  string $key        the key
+	 * @return boolean            true if the key is locked, else false
 	 */
-	public function waitForLockRelease($namespace, $key, $default = null, $maxWaitTime = 3, $checkInterval = 750) {
-		return $this->get($namespace, $key, $default);
+	public function hasLock($namespace, $key) {
+		return isset($this->locks[$namespace][$key]);
 	}
 
 	/**

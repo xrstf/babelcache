@@ -162,4 +162,14 @@ class Redis implements AdapterInterface, IncrementInterface, LockingInterface {
 	public function unlock($key) {
 		return $this->client->del('lock:'.$key) === 1;
 	}
+
+	/**
+	 * Check if a key is locked
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the key is locked, else false
+	 */
+	public function hasLock($key) {
+		return $this->exists('lock:'.$key);
+	}
 }

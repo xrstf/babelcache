@@ -160,6 +160,22 @@ abstract class PDO implements AdapterInterface, LockingInterface {
 		return $stmt->rowCount() > 0;
 	}
 
+	/**
+	 * Check if a key is locked
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the key is locked, else false
+	 */
+	public function hasLock($key) {
+		$stmt = $this->getStatement('exists');
+		$stmt->execute(array('hash' => 'lock:'.sha1($key)));
+
+		$row = $stmt->fetch(\PDO::FETCH_ASSOC);
+		$stmt->closeCursor();
+
+		return !empty($row);
+	}
+
 	protected function getStatement($key) {
 		if (!isset($this->stmts[$key])) {
 			if (!isset($this->queries[$key])) {

@@ -195,4 +195,14 @@ class Memcached implements AdapterInterface, IncrementInterface, LockingInterfac
 	public function unlock($key) {
 		return $this->memcached->delete('lock:'.$key);
 	}
+
+	/**
+	 * Check if a key is locked
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the key is locked, else false
+	 */
+	public function hasLock($key) {
+		return $this->exists('lock:'.$key);
+	}
 }

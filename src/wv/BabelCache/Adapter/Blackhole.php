@@ -95,4 +95,14 @@ class Blackhole implements AdapterInterface {
 	public function clear() {
 		return true;
 	}
+
+	/**
+	 * Check if a key is locked
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the key is locked, else false
+	 */
+	public function hasLock($key) {
+		return false;
+	}
 }

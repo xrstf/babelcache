@@ -35,4 +35,12 @@ interface LockingInterface {
 	 * @return boolean      true if the lock was released or there was no lock, else false
 	 */
 	public function unlock($key);
+
+	/**
+	 * Check if a key is locked
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the key is locked, else false
+	 */
+	public function hasLock($key);
 }
