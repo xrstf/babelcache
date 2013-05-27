@@ -1,6 +1,6 @@
 <?php
 /*
- * Copyright (c) 2013, webvariants GbR, http://www.webvariants.de
+ * Copyright (c) 2012, webvariants GbR, http://www.webvariants.de
  *
  * This file is released under the terms of the MIT license. You can find the
  * complete text in the attached LICENSE file or online at:
@@ -8,21 +8,12 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-namespace wv\BabelCache\Adapter;
-
 use wv\BabelCache\AdapterInterface;
 use wv\BabelCache\Factory;
 use wv\BabelCache\IncrementInterface;
-use wv\BabelCache\LockingInterface;
 
-/**
- * Runtime cache
- *
- * @package BabelCache.Adapter
- */
-class Memory implements AdapterInterface, IncrementInterface, LockingInterface {
-	protected $data  = array();  ///< array  contains the cached data {key: value, key: value}
-	protected $locks = array();  ///< array  contains the locked keys
+class NonLockingMemoryAdapter implements AdapterInterface, IncrementInterface {
+	protected $data = array();  ///< array  contains the cached data {key: value, key: value}
 
 	/**
 	 * Checks whether a caching system is avilable
@@ -98,50 +89,9 @@ class Memory implements AdapterInterface, IncrementInterface, LockingInterface {
 	 * @return boolean  true if the flush was successful, else false
 	 */
 	public function clear() {
-		$this->data  = array();
-		$this->locks = array();
+		$this->data = array();
 
 		return true;
-	}
-
-	/**
-	 * Locks a key
-	 *
-	 * This method will create a lock for a specific key.
-	 *
-	 * @param  string $key  the key
-	 * @return boolean      true if the lock was aquired, else false
-	 */
-	public function lock($key) {
-		if (isset($this->locks[$key])) return false;
-		$this->locks[$key] = 1;
-
-		return true;
-	}
-
-	/**
-	 * Releases a lock
-	 *
-	 * This method will remove a lock for a specific key.
-	 *
-	 * @param  string $key  the key
-	 * @return boolean      true if the lock was released or there was no lock, else false
-	 */
-	public function unlock($key) {
-		if (!isset($this->locks[$key])) return false;
-		unset($this->locks[$key]);
-
-		return true;
-	}
-
-	/**
-	 * Check if a key is locked
-	 *
-	 * @param  string $key  the key
-	 * @return boolean      true if the key is locked, else false
-	 */
-	public function hasLock($key) {
-		return isset($this->locks[$key]);
 	}
 
 	/**

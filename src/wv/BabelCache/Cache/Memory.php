@@ -11,6 +11,7 @@
 namespace wv\BabelCache\Cache;
 
 use wv\BabelCache\CacheInterface;
+use wv\BabelCache\Util;
 
 /**
  * Runtime cache
@@ -88,8 +89,10 @@ class Memory implements CacheInterface {
 	 * @return boolean             true if the flush was successful, else false
 	 */
 	public function clear($namespace, $recursive = false) {
+		Util::checkString($namespace, 'namespace');
+
 		$this->data  = $this->clearArray($this->data, $namespace, $recursive);
-		$this->locks = $this->clearArray($this->locks, $namespace, $recursive);
+		$this->locks = array();
 
 		return true;
 	}

@@ -11,6 +11,14 @@
 abstract class Cache_BaseTest extends PHPUnit_Framework_TestCase {
 	abstract protected function getCache();
 
+	public function testGetNonexisting() {
+		$cache = $this->getCache();
+
+		$this->assertSame(12, $cache->get('t.foo', 'key', 12));
+		$this->assertFalse($cache->get('t.foo', 'key', false));
+		$this->assertNull($cache->get('t.foo', 'key', null));
+	}
+
 	/**
 	 * @dataProvider setGetProvider
 	 */
@@ -59,9 +67,9 @@ abstract class Cache_BaseTest extends PHPUnit_Framework_TestCase {
 	 */
 	public function testClear($clearLevel, $exists1, $exists2, $exists3) {
 		$cache = $this->getCache();
-		$l1    = 't.a'.uniqid();
-		$l2    = $l1.'.b'.uniqid();
-		$l3    = $l2.'.c'.uniqid();
+		$l1    = 't.AA_'.mt_rand().'_AA';
+		$l2    = $l1.'.BB_'.mt_rand().'_BB';
+		$l3    = $l2.'.CC_'.mt_rand().'_CC';
 
 		$cache->set($l1, 'foo', 'bar');
 		$cache->set($l2, 'foo', 'bar');
@@ -151,5 +159,75 @@ abstract class Cache_BaseTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue($cache->remove('t.foo', 'key'));
 		$this->assertFalse($cache->remove('t.foo', 'key'));
 		$this->assertFalse($cache->exists('t.foo', 'key'));
+	}
+
+	/**
+	 * @depends  testSetGet
+	 */
+	public function testNamespaceAndKeyAreCaseSensitive() {
+		$cache = $this->getCache();
+
+		$cache->set('t.foo', 'key', 'fk content');
+		$cache->set('t.FOO', 'key', 'Fk content');
+
+		$this->assertTrue($cache->exists('t.foo', 'key'));
+		$this->assertTrue($cache->exists('t.FOO', 'key'));
+		$this->assertFalse($cache->exists('t.Foo', 'key'));
+		$this->assertFalse($cache->exists('t.foo', 'KEY'));
+
+		$cache->set('t.foo', 'KEY', 'fK content');
+
+		$this->assertTrue($cache->exists('t.foo', 'key'));
+		$this->assertTrue($cache->exists('t.FOO', 'key'));
+		$this->assertFalse($cache->exists('t.Foo', 'key'));
+		$this->assertTrue($cache->exists('t.foo', 'KEY'));
+
+		$this->assertSame('fk content', $cache->get('t.foo', 'key'));
+		$this->assertSame('Fk content', $cache->get('t.FOO', 'key'));
+		$this->assertSame('fK content', $cache->get('t.foo', 'KEY'));
+
+		$cache->remove('t.foo', 'key');
+
+		$this->assertFalse($cache->exists('t.foo', 'key'));
+		$this->assertTrue($cache->exists('t.FOO', 'key'));
+		$this->assertTrue($cache->exists('t.foo', 'KEY'));
+	}
+
+	public function testLocking() {
+		$cache = $this->getCache();
+
+		// there should be no lock already
+		$this->assertFalse($cache->hasLock('t.locks', 'foo'));
+		$this->assertFalse($cache->hasLock('t.locks', 'bar'));
+
+		// we should only be able to lock once
+		$this->assertTrue($cache->lock('t.locks', 'foo'));
+		$this->assertFalse($cache->lock('t.locks', 'foo'));
+
+		// but locking other keys should still work
+		$this->assertTrue($cache->lock('t.locks', 'bar'));
+
+		// now we have locks
+		$this->assertTrue($cache->hasLock('t.locks', 'foo'));
+		$this->assertTrue($cache->hasLock('t.locks', 'bar'));
+
+		// a clear should remove the locks as well
+		$cache->clear('x');
+
+		// locks are gone
+		$this->assertFalse($cache->hasLock('t.locks', 'foo'));
+		$this->assertFalse($cache->hasLock('t.locks', 'bar'));
+
+		// ... so we can lock again
+		$this->assertTrue($cache->lock('t.locks', 'foo'));
+		$this->assertTrue($cache->hasLock('t.locks', 'foo'));
+
+		// unlocking should have the same effect
+		$this->assertTrue($cache->unlock('t.locks', 'foo'));
+		$this->assertFalse($cache->hasLock('t.locks', 'foo'));
+		$this->assertTrue($cache->lock('t.locks', 'foo'));
+
+		// unlocking a non-existing lock for a key should not work
+		$this->assertFalse($cache->unlock('t.locks', 'bar'));
 	}
 }

@@ -197,7 +197,7 @@ abstract class Adapter_BaseTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue($adapter->hasLock('foo'));
 		$this->assertTrue($adapter->hasLock('bar'));
 
-		// a clear should remove the lock as well
+		// a clear should remove the locks as well
 		$adapter->clear();
 
 		// locks are gone

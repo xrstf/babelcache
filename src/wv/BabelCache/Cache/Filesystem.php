@@ -80,14 +80,18 @@ class Filesystem implements CacheInterface {
 
 		// old filestats?
 		if (!$handle) {
+			// @codeCoverageIgnoreStart
 			clearstatcache();
 			return $default;
+			// @codeCoverageIgnoreEnd
 		}
 
 		// try to lock the file
 		if (!flock($handle, LOCK_SH)) {
+			// @codeCoverageIgnoreStart
 			fclose($handle);
 			return $default;
+			// @codeCoverageIgnoreEnd
 		}
 
 		// read it
@@ -164,10 +168,16 @@ class Filesystem implements CacheInterface {
 	public function clear($namespace, $recursive = false) {
 		Util::checkString($namespace, 'namespace');
 
+		$namespace = $this->hashNamespace($namespace);
 		$namespace = $this->getDirFromNamespace($namespace);
 		$root      = $this->dataDir.'/'.$namespace;
 
-		return $recursive ? $this->deleteRecursive($root) : $this->deleteFiles($root);
+		if ($recursive) {
+			return $this->deleteRecursive($root) && $this->deleteLocks();
+		}
+		else {
+			return $this->deleteFiles($root) && $this->deleteLocks();
+		}
 	}
 
 	/**
@@ -185,7 +195,7 @@ class Filesystem implements CacheInterface {
 
 		clearstatcache();
 
-		return @mkdir($dir, parent::$dirPerm);
+		return @mkdir($dir, $this->dirPerm);
 	}
 
 	/**
@@ -202,7 +212,7 @@ class Filesystem implements CacheInterface {
 
 		clearstatcache();
 
-		return is_dir($dir) ? rmdir($dir) : true;
+		return is_dir($dir) ? rmdir($dir) : false;
 	}
 
 	/**
@@ -254,6 +264,7 @@ class Filesystem implements CacheInterface {
 		$key       = Util::checkString($key, 'key');
 		$dir       = $this->dataDir;
 		$hash      = md5($key);
+		$namespace = $this->hashNamespace($namespace);
 		$part      = $this->getDirFromNamespace($namespace);
 
 		clearstatcache();
@@ -273,7 +284,7 @@ class Filesystem implements CacheInterface {
 	 * @return string
 	 */
 	protected function getLockDir($namespace, $key) {
-		$key = $this->getFullKeyHelper($namespace, $key);
+		$key = Util::getFullKeyHelper($namespace, $key);
 
 		return $this->dataDir.'/lock-'.sha1($key);
 	}
@@ -317,9 +328,11 @@ class Filesystem implements CacheInterface {
 
 			return !!$status;
 		}
-		catch (\UnexpectedValueException $e) {
+		// @codeCoverageIgnoreStart
+		catch (\Exception $e) {
 			return false;
 		}
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -338,6 +351,24 @@ class Filesystem implements CacheInterface {
 		}
 
 		return str_replace('.', '/', $namespace);
+	}
+
+	/**
+	 * Hash a namespace
+	 *
+	 * Namespace hashing works by hashing all individual steps on their own.
+	 *
+	 * @param  string $namespace  the namespace
+	 * @return string             the hashed namespace
+	 */
+	protected function hashNamespace($namespace) {
+		$parts = explode('.', $namespace);
+
+		foreach ($parts as $idx => $part) {
+			$parts[$idx] = sha1($part);
+		}
+
+		return implode('.', $parts);
 	}
 
 	/**
@@ -371,6 +402,25 @@ class Filesystem implements CacheInterface {
 		foreach ($files as $file) {
 			if (is_dir($file)) continue;
 			$status &= unlink($file);
+		}
+
+		clearstatcache();
+		error_reporting($level);
+
+		return !!$status;
+	}
+
+	protected function deleteLocks() {
+		$dirs   = glob($this->dataDir.'/*', GLOB_NOSORT | GLOB_ONLYDIR);
+		$status = true;
+		$level  = 0; //error_reporting(0);
+
+		foreach ($dirs as $dir) {
+			$basename = basename($dir);
+
+			if (substr($basename, 0, 5) === 'lock-') {
+				$status &= rmdir($dir);
+			}
 		}
 
 		clearstatcache();

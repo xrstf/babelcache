@@ -33,6 +33,7 @@ class Generic implements CacheInterface {
 	protected $versions;  ///< array             runtime cache of versions
 
 	const MAX_KEY_LENGTH = 200;
+	const LOCK_NAMESPACE = '__locks__';
 
 	public function __construct(AdapterInterface $adapter, $prefix = '') {
 		$this->adapter  = $adapter;
@@ -163,6 +164,14 @@ class Generic implements CacheInterface {
 	public function clear($namespace, $recursive = false) {
 		Util::checkString($namespace, 'namespace');
 
+		// clear the locks
+		// It's okay if this fails, maybe there was no lock yet and hence no version key.
+
+		$this->increment($this->getPrefixed('version:'.self::LOCK_NAMESPACE));
+		$this->versions = array();
+
+		// build the path up until the namespace to clear
+
 		$fullKey = $namespace.'$';
 		$path    = $this->createVersionPath($fullKey, false, true);
 
@@ -172,9 +181,14 @@ class Generic implements CacheInterface {
 
 		// prefix/version:foo@123.bar@45.mynamespace++;
 
-		$this->versions = array();
+		if ($this->increment($this->getPrefixed('version:'.$path)) !== false) {
+			$this->versions = array();
+			return true;
+		}
 
-		return $this->increment($this->getPrefixed('version:'.$path)) !== false;
+		// @codeCoverageIgnoreStart
+		return false;
+		// @codeCoverageIgnoreEnd
 	}
 
 	/**
@@ -188,21 +202,20 @@ class Generic implements CacheInterface {
 	 * @return boolean            true if the lock was aquired, else false
 	 */
 	public function lock($namespace, $key) {
-		$key = $this->getFullKey($namespace, $key);
+		$key = $this->getFullLockKey($namespace, $key);
 
 		if ($this->adapter instanceof LockingInterface) {
 			return $this->adapter->lock($key);
 		}
 		else {
-			$fullKey = $this->getPrefixed('lock:'.$key);
-			$isset   = $this->adapter->exists($fullKey);
+			$isset = $this->adapter->exists($key);
 
 			// lock exists already
 			if ($isset === true) {
 				return false;
 			}
 
-			return $this->adapter->set($fullKey, 1);
+			return $this->adapter->set($key, 1);
 		}
 	}
 
@@ -216,21 +229,20 @@ class Generic implements CacheInterface {
 	 * @return boolean            true if the lock was released, else false
 	 */
 	public function unlock($namespace, $key) {
-		$key = $this->getFullKey($namespace, $key);
+		$key = $this->getFullLockKey($namespace, $key);
 
 		if ($this->adapter instanceof LockingInterface) {
 			return $this->adapter->unlock($key);
 		}
 		else {
-			$fullKey = $this->getPrefixed('lock:'.$key);
-			$isset   = $this->adapter->exists($fullKey);
+			$isset = $this->adapter->exists($key);
 
 			// no lock, everything's shiny
 			if ($isset === false) {
-				return true;
+				return false;
 			}
 
-			return $this->adapter->remove($fullKey);
+			return $this->adapter->remove($key);
 		}
 	}
 
@@ -242,15 +254,13 @@ class Generic implements CacheInterface {
 	 * @return boolean            true if the key is locked, else false
 	 */
 	public function hasLock($namespace, $key) {
-		$key = $this->getFullKey($namespace, $key);
+		$key = $this->getFullLockKey($namespace, $key);
 
 		if ($this->adapter instanceof LockingInterface) {
 			return $this->adapter->hasLock($key);
 		}
 		else {
-			$fullKey = $this->getPrefixed('lock:'.$key);
-
-			return $this->adapter->exists($fullKey);
+			return $this->adapter->exists($key);
 		}
 	}
 
@@ -394,17 +404,29 @@ class Generic implements CacheInterface {
 	 * Increment a key in a portable way
 	 *
 	 * @param  string $key  the element's key
-	 * @return int          the value after it has been incremented or false if the operation failed
+	 * @return mixed        the value after it has been incremented or false if the operation failed
 	 */
 	protected function increment($key) {
 		if ($this->adapter instanceof IncrementInterface) {
-			return $this->adapter->increment($key);
+			$result = $this->adapter->increment($key);
+		}
+		else {
+			$found = false;
+			$value = $this->adapter->get($key, $found);
+
+			if (!$found) {
+				return false;
+			}
+
+			$value++;
+
+			$result = $this->adapter->set($key, $value) ? $value : false;
 		}
 
-		$found = false;
-		$value = $this->adapter->get($key, $found);
-		$value = $found ? ($value + 1) : 1;
+		return $result;
+	}
 
-		return $this->adapter->set($key, $value) ? $value : false;
+	protected function getFullLockKey($namespace, $key) {
+		return $this->getPrefixed($this->createVersionPath(self::LOCK_NAMESPACE.'$'.sha1($namespace.'$'.$key), true));
 	}
 }
