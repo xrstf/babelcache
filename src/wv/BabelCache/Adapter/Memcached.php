@@ -169,7 +169,7 @@ class Memcached implements AdapterInterface, IncrementInterface, LockingInterfac
 	 * @return int          the value after it has been incremented or false if the operation failed
 	 */
 	public function increment($key) {
-		return $this->memcached->increment($key, 1, 0, 0xFFFFFFFF);
+		return $this->memcached->increment($key, 1);
 	}
 
 	/**
