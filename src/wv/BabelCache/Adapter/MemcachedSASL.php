@@ -116,10 +116,7 @@ class MemcachedSASL implements AdapterInterface, IncrementInterface, LockingInte
 			return null;
 		}
 
-		$body = $data['body'];
-		$type = $data['extra'] & self::MEMC_VAL_TYPE_MASK;
-
-		return $this->decodeValue($data['body'], $data['extra']);
+		return $this->decodeValue($response['body'], $response['extra']);
 	}
 
 	/**
@@ -200,7 +197,7 @@ class MemcachedSASL implements AdapterInterface, IncrementInterface, LockingInte
 			'extra' => $extra
 		));
 
-		return $this->isSuccess($response);
+		return $this->isSuccess($response) ? (int) $response['body'] : false;
 	}
 
 	/**
