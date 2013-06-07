@@ -60,7 +60,7 @@ class Compat implements CacheInterface {
 	 * @return mixed              the set value
 	 */
 	public function set($namespace, $key, $value) {
-		return $this->cache->set($namespace, $key, $data);
+		return $this->cache->set($namespace, $key, $value);
 	}
 
 	/**
