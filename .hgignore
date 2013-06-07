@@ -1,5 +1,7 @@
 syntax:glob
 docs/_build/*
 docs/coco/*.html
-syntax: glob
-tests/test.sqlite
+tests/fscache
+tests/fsadapter
+vendor/
+test-coverage/

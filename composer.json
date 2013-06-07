@@ -6,10 +6,13 @@
         "cache",
         "caching",
         "apc",
-        "xcache",
-        "eaccelerator",
+        "filesystem",
         "memcache",
         "memcached",
+        "mysql",
+        "redis",
+        "sqlite",
+        "xcache",
         "zendserver"
     ],
     "homepage": "http://docs.webvariants.de/babelcache/latest/",
@@ -21,16 +24,19 @@
         }
     ],
     "require": {
-        "php": ">=5.1.0"
+        "php": ">=5.3.3"
+    },
+    "suggest": {
+        "predis/predis": "install this to use the Redis adapter"
     },
     "autoload": {
         "psr-0": {
-            "BabelCache": ""
+            "wv\\BabelCache": "src/"
         }
     },
     "extra": {
         "branch-alias": {
-            "dev-default": "1.x-dev"
+            "dev-default": "2.x-dev"
         }
     }
 }
