@@ -75,7 +75,7 @@ class Compat implements CacheInterface {
 	 * @return mixed              the found value or $default
 	 */
 	public function get($namespace, $key, $default = null, &$found = null) {
-		return $this->cache->set($namespace, $key, $default, $found);
+		return $this->cache->get($namespace, $key, $default, $found);
 	}
 
 	/**

@@ -270,7 +270,7 @@ class Filesystem implements CacheInterface {
 		clearstatcache();
 
 		if (!is_dir($dir.'/'.$part)) {
-			$this->createNamespaceDir(explode('.', $namespace), $dir, $hash);
+			$this->createNamespaceDir(explode('.', $part), $dir, $hash);
 		}
 
 		return $dir.'/'.$part.'/'.$hash;
