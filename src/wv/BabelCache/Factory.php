@@ -98,7 +98,7 @@ abstract class Factory {
 		$result = array();
 
 		foreach ($this->getAdapters(false) as $name => $className) {
-			if (call_user_func(array($className, 'isAvailable'), $this)) {
+			if ($this->isAvailable($name)) {
 				if ($keysOnly) {
 					$result[] = $name;
 				}
@@ -128,6 +128,24 @@ abstract class Factory {
 		else {
 			$this->overwrites[$key] = $className;
 		}
+	}
+
+	/**
+	 * Check if a given adapter is available
+	 *
+	 * @param  string $adapterName
+	 * @return boolean
+	 */
+	public function isAvailable($adapterName) {
+		$adapters = $this->getAdapters();
+
+		if (!array_key_exists($adapterName, $adapters)) {
+			throw new Exception('Unknown adapter named "'.$adapterName.'" given!');
+		}
+
+		$className = $adapters[$adapterName];
+
+		return call_user_func(array($className, 'isAvailable'), $this);
 	}
 
 	/**
