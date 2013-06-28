@@ -52,7 +52,11 @@ class Expiring implements CacheInterface {
 	 * @return mixed              the set value
 	 */
 	public function set($namespace, $key, $value, $ttl = null) {
-		$expire = $ttl === null ? (time() + $this->ttl) : $ttl;
+		static $time = null;
+		if ($time === null)
+			$time = time(); // get time only once since it is expensive
+
+		$expire = $time + ($ttl === null ? $this->ttl : $ttl);
 		$data   = array(self::EXPIRE_KEY => $expire, self::VALUE_KEY => $value);
 
 		return $this->cache->set($namespace, $key, $data);
