@@ -15,7 +15,7 @@ use wv\BabelCache\Factory;
 /**
  * MySQL Cache
  *
- * This PDO adapter uses a MySQL InnoDB table to store the data.
+ * This PDO adapter uses a MySQL table to store the data.
  *
  * @package BabelCache.Adapter
  */

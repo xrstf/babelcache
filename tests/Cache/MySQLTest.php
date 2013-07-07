@@ -10,18 +10,15 @@
 
 use wv\BabelCache\Adapter\MySQL;
 
-class Adapter_MySQLTest extends Adapter_BaseTest {
-	protected function getAdapter() {
-		$factory = new TestFactory('fsadapter');
-		$factory->mysqlTableName = 'tmp_adapter';
+class Cache_MySQLTest extends Cache_BaseTest {
+	protected function getCache() {
+		$factory = new TestFactory('fscache');
+		$factory->mysqlTableName = 'tmp_cache';
 
 		if (!MySQL::isAvailable($factory)) {
 			$this->markTestSkipped('MySQL is not available.');
 		}
 
-		$adapter = $factory->getAdapter('mysql');
-		$adapter->clear();
-
-		return $adapter;
+		return $factory->getCache('mysql');
 	}
 }

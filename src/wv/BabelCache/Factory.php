@@ -61,7 +61,9 @@ abstract class Factory {
 		$this->overwrites = array(
 			'blackhole'  => $prefix.'Blackhole',
 			'memory'     => $prefix.'Memory',
-			'filesystem' => $prefix.'Filesystem'
+			'filesystem' => $prefix.'Filesystem',
+			'mysql'      => $prefix.'MySQL',
+			'sqlite'     => $prefix.'SQLite'
 		);
 	}
 

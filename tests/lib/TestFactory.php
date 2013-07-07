@@ -16,9 +16,9 @@ class TestFactory extends Factory {
 	protected $cacheDir;
 
 	public $sqliteConnection   = true;
-	public $sqliteTableName    = 'tmp';
+	public $sqliteTableName    = 'tmp_adapter';
 	public $mysqlConnection    = true;
-	public $mysqlTableName     = 'tmp';
+	public $mysqlTableName     = 'tmp_adapter';
 	public $redisAddresses     = array('host' => '127.0.0.1', 'port' => 6379);
 	public $memcachedAddresses = array(array('127.0.0.1', 11211, 1));
 
@@ -43,8 +43,10 @@ class TestFactory extends Factory {
 	public function getSQLiteConnection() {
 		if ($this->sqliteConnection === true) {
 			$connection = SQLite::connect(':memory:');
-			$connection->exec('DROP TABLE IF EXISTS "tmp"');
-			$connection->exec('CREATE TABLE "tmp" ("keyhash" VARCHAR(50), "payload" BLOB, PRIMARY KEY ("keyhash"))');
+			$connection->exec('DROP TABLE IF EXISTS "tmp_adapter"');
+			$connection->exec('DROP TABLE IF EXISTS "tmp_cache"');
+			$connection->exec('CREATE TABLE "tmp_adapter" ("keyhash" VARCHAR(50), "payload" BLOB, PRIMARY KEY ("keyhash"))');
+			$connection->exec('CREATE TABLE "tmp_cache" ("prefix" VARCHAR(50), "namespace" VARCHAR(255), "keyname" VARCHAR(255), "payload" BLOB, PRIMARY KEY ("prefix", "namespace", "keyname"))');
 
 			return $connection;
 		}
@@ -63,8 +65,11 @@ class TestFactory extends Factory {
 			$host       = ++$called % 2 ? 'localhost' : 'localhost:3306';
 			$connection = MySQL::connect($host, 'develop', 'develop', 'test');
 
-			$connection->exec('DROP TABLE IF EXISTS tmp');
-			$connection->exec('CREATE TABLE tmp (keyhash VARCHAR(50), payload BLOB, PRIMARY KEY (keyhash))');
+			$connection->exec('DROP TABLE IF EXISTS tmp_adapter');
+			$connection->exec('DROP TABLE IF EXISTS tmp_cache');
+
+			$connection->exec('CREATE TABLE tmp_adapter (keyhash VARCHAR(50), payload BLOB, PRIMARY KEY (keyhash))');
+			$connection->exec('CREATE TABLE tmp_cache (prefix VARBINARY(50), namespace VARBINARY(255), keyname VARBINARY(255), payload BLOB, PRIMARY KEY (prefix, namespace, keyname))');
 
 			return $connection;
 		}

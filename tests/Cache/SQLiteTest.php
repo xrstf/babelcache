@@ -10,18 +10,15 @@
 
 use wv\BabelCache\Adapter\SQLite;
 
-class Adapter_SQLiteTest extends Adapter_BaseTest {
-	protected function getAdapter() {
-		$factory = new TestFactory('fsadapter');
-		$factory->sqliteTableName = 'tmp_adapter';
+class Cache_SQLiteTest extends Cache_BaseTest {
+	protected function getCache() {
+		$factory = new TestFactory('fscache');
+		$factory->sqliteTableName = 'tmp_cache';
 
 		if (!SQLite::isAvailable($factory)) {
 			$this->markTestSkipped('SQLite is not available.');
 		}
 
-		$adapter = $factory->getAdapter('sqlite');
-		$adapter->clear();
-
-		return $adapter;
+		return $factory->getCache('sqlite');
 	}
 }
