@@ -29,7 +29,7 @@ interface LockingInterface {
 	/**
 	 * Releases a lock
 	 *
-	 * This method will remove a lock for a specific key.
+	 * This method will delete a lock for a specific key.
 	 *
 	 * @param  string $key  the key
 	 * @return boolean      true if the lock was released or there was no lock, else false

@@ -50,7 +50,7 @@ class SQLite extends PDO {
 			'get'    => sprintf('SELECT payload FROM %s WHERE prefix = :prefix AND namespace = :namespace AND keyname = :key', $table),
 			'set'    => sprintf('INSERT OR REPLACE INTO %s (prefix, namespace, keyname, payload) VALUES (:prefix, :namespace, :key, :payload)', $table),
 			'exists' => sprintf('SELECT 1 FROM %s WHERE prefix = :prefix AND namespace = :namespace AND keyname = :key', $table),
-			'remove' => sprintf('DELETE FROM %s WHERE prefix = :prefix AND namespace = :namespace AND keyname = :key', $table),
+			'delete' => sprintf('DELETE FROM %s WHERE prefix = :prefix AND namespace = :namespace AND keyname = :key', $table),
 			'clear'  => sprintf('DELETE FROM %s WHERE prefix = :prefix AND namespace = :namespace', $table),
 			'rclear' => sprintf('DELETE FROM %s WHERE prefix = :prefix AND (namespace = :namespace OR namespace LIKE :nslike)', $table),
 			'lclear' => sprintf('DELETE FROM %s WHERE prefix = :prefix AND keyname LIKE :key', $table),

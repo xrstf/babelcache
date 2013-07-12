@@ -143,12 +143,12 @@ class MemcachedSASL implements AdapterInterface, IncrementInterface, LockingInte
 	}
 
 	/**
-	 * Removes a single value from the cache
+	 * Deletes a single value from the cache
 	 *
 	 * @param  string $key  the object key
 	 * @return boolean      true if the value was deleted, else false
 	 */
-	public function remove($key) {
+	public function delete($key) {
 		$response = $this->send(self::OPCODE_DELETE, array('key' => $key));
 
 		return $this->isSuccess($response);
@@ -167,7 +167,7 @@ class MemcachedSASL implements AdapterInterface, IncrementInterface, LockingInte
 	}
 
 	/**
-	 * Removes all values
+	 * Deletes all values
 	 *
 	 * @return boolean  true if the flush was successful, else false
 	 */
@@ -220,13 +220,13 @@ class MemcachedSASL implements AdapterInterface, IncrementInterface, LockingInte
 	/**
 	 * Releases a lock
 	 *
-	 * This method will remove a lock for a specific key.
+	 * This method will delete a lock for a specific key.
 	 *
 	 * @param  string $key  the key
 	 * @return boolean      true if the lock was released or there was no lock, else false
 	 */
 	public function unlock($key) {
-		return $this->remove('lock:'.$key);
+		return $this->delete('lock:'.$key);
 	}
 
 	/**

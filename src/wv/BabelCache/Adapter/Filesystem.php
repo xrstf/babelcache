@@ -138,17 +138,17 @@ class Filesystem implements AdapterInterface, LockingInterface {
 	}
 
 	/**
-	 * Removes a single value from the cache
+	 * Deletes a single value from the cache
 	 *
 	 * @param  string $key  the object key
 	 * @return boolean      true if the value was deleted, else false
 	 */
-	public function remove($key) {
+	public function delete($key) {
 		return @unlink($this->getFilename($key));
 	}
 
 	/**
-	 * Removes all values
+	 * Deletes all values
 	 *
 	 * @return boolean  true if the flush was successful, else false
 	 */
@@ -163,7 +163,7 @@ class Filesystem implements AdapterInterface, LockingInterface {
 					$status &= unlink($file->getPathname());
 				}
 
-				// try to remove locks as well
+				// try to delete locks as well
 				elseif ($file->isDir() && !$iterator->isDot()) {
 					$status &= rmdir($file->getPathname());
 				}
@@ -200,7 +200,7 @@ class Filesystem implements AdapterInterface, LockingInterface {
 	/**
 	 * Releases a lock
 	 *
-	 * This method will remove a lock for a specific key.
+	 * This method will delete a lock for a specific key.
 	 *
 	 * @param  string $key  the key
 	 * @return boolean      true if the lock was released or there was no lock, else false

@@ -89,14 +89,14 @@ class Expiring implements CacheInterface {
 	}
 
 	/**
-	 * Removes a single value from the cache
+	 * Deletes a single value from the cache
 	 *
 	 * @param  string $namespace  the namespace to use
 	 * @param  string $key        the object key
 	 * @return boolean            true if the value was deleted, else false
 	 */
-	public function remove($namespace, $key) {
-		return $this->cache->remove($namespace, $key);
+	public function delete($namespace, $key) {
+		return $this->cache->delete($namespace, $key);
 	}
 
 	/**
@@ -111,9 +111,9 @@ class Expiring implements CacheInterface {
 	}
 
 	/**
-	 * Removes all values in a given namespace
+	 * Deletes all values in a given namespace
 	 *
-	 * This method will remove all values by making them unavailable. For this,
+	 * This method will delete all values by making them unavailable. For this,
 	 * the version number of the flushed namespace is increased by one.
 	 *
 	 * Implementations are *not* required to support non-recursive flushes. If
@@ -146,7 +146,7 @@ class Expiring implements CacheInterface {
 	/**
 	 * Releases a lock
 	 *
-	 * This method will remove a lock for a specific key.
+	 * This method will delete a lock for a specific key.
 	 *
 	 * @param  string $namespace  the namespace
 	 * @param  string $key        the key

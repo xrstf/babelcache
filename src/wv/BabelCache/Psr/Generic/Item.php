@@ -92,12 +92,12 @@ class Item implements ItemInterface {
 	}
 
 	/**
-	 * Removes the current key from the cache.
+	 * Ddeletes the current key from the cache.
 	 *
 	 * @return ItemInterface  the current item
 	 */
 	public function delete() {
-		$this->adapter->remove($this->getKey());
+		$this->adapter->delete($this->getKey());
 
 		$this->isHit = false;
 		$this->item  = array('payload' => null, 'ttl' => null);

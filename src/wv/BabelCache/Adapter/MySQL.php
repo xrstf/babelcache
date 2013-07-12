@@ -77,7 +77,7 @@ class MySQL extends PDO {
 			'get'    => sprintf('SELECT payload FROM %s WHERE keyhash = :hash', $table),
 			'set'    => sprintf('REPLACE INTO %s (keyhash, payload) VALUES (:hash, :payload)', $table),
 			'exists' => sprintf('SELECT 1 FROM %s WHERE keyhash = :hash', $table),
-			'remove' => sprintf('DELETE FROM %s WHERE keyhash = :hash', $table),
+			'delete' => sprintf('DELETE FROM %s WHERE keyhash = :hash', $table),
 			'clear'  => sprintf('DELETE FROM %s', $table),
 			'lock'   => sprintf('INSERT IGNORE INTO %s (keyhash, payload) VALUES (:hash, :payload)', $table)
 		);

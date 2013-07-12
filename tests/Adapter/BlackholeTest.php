@@ -40,12 +40,12 @@ class Adapter_BlackholeTest extends PHPUnit_Framework_TestCase {
 		$this->assertFalse($adapter->exists('bar'));
 	}
 
-	public function testRemove() {
+	public function testDelete() {
 		$adapter = new Blackhole();
 		$adapter->set('foo', 'content');
 
 		$this->assertFalse($adapter->exists('foo'));
-		$this->assertTrue($adapter->remove('foo'));
+		$this->assertTrue($adapter->delete('foo'));
 		$this->assertFalse($adapter->exists('foo'));
 	}
 

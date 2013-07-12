@@ -57,13 +57,13 @@ class Memory implements CacheInterface {
 	}
 
 	/**
-	 * Removes a single value from the cache
+	 * Deletes a single value from the cache
 	 *
 	 * @param  string $namespace  the namespace to use
 	 * @param  string $key        the object key
 	 * @return boolean            true if the value was deleted, else false
 	 */
-	public function remove($namespace, $key) {
+	public function delete($namespace, $key) {
 		$exists = $this->exists($namespace, $key);
 		unset($this->data[$namespace][$key]);
 
@@ -82,7 +82,7 @@ class Memory implements CacheInterface {
 	}
 
 	/**
-	 * Removes all values in a given namespace
+	 * Deletes all values in a given namespace
 	 *
 	 * @param  string  $namespace  the namespace to use
 	 * @param  boolean $recursive  if set to true, all child namespaces will be cleared as well
@@ -136,7 +136,7 @@ class Memory implements CacheInterface {
 	/**
 	 * Releases a lock
 	 *
-	 * This method will remove a lock for a specific key.
+	 * This method will delete a lock for a specific key.
 	 *
 	 * @param  string $namespace  the namespace
 	 * @param  string $key        the key

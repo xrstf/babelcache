@@ -152,12 +152,12 @@ abstract class Cache_BaseTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * @depends  testExists
 	 */
-	public function testRemove() {
+	public function testDelete() {
 		$cache = $this->getCache();
 		$cache->set('t.foo', 'key', 'abc');
 
-		$this->assertTrue($cache->remove('t.foo', 'key'));
-		$this->assertFalse($cache->remove('t.foo', 'key'));
+		$this->assertTrue($cache->delete('t.foo', 'key'));
+		$this->assertFalse($cache->delete('t.foo', 'key'));
 		$this->assertFalse($cache->exists('t.foo', 'key'));
 	}
 
@@ -186,7 +186,7 @@ abstract class Cache_BaseTest extends PHPUnit_Framework_TestCase {
 		$this->assertSame('Fk content', $cache->get('t.FOO', 'key'));
 		$this->assertSame('fK content', $cache->get('t.foo', 'KEY'));
 
-		$cache->remove('t.foo', 'key');
+		$cache->delete('t.foo', 'key');
 
 		$this->assertFalse($cache->exists('t.foo', 'key'));
 		$this->assertTrue($cache->exists('t.FOO', 'key'));
@@ -211,7 +211,7 @@ abstract class Cache_BaseTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue($cache->hasLock('t.locks', 'foo'));
 		$this->assertTrue($cache->hasLock('t.locks', 'bar'));
 
-		// a clear should remove the locks as well
+		// a clear should delete the locks as well
 		$cache->clear('x');
 
 		// locks are gone

@@ -51,8 +51,8 @@ BabelCache is divided into three parts:
 
 Adapters are the basic building block of BabelCache. There is one adapter per
 technology (APC, Memcached, Redis, ...) and each of them just implements a
-very basic **key-value interface** (``set``, ``get``, ``remove``, ``exists``,
-``clear``). Their interface is very similar to the one in the PSR proposal.
+very basic **key-value interface** (``set``, ``get``, ``delete``, ``exists``,
+``clear``).
 
 You are free to use the adapters and hence a flat key-value storage, if that
 suits your needs. For example:

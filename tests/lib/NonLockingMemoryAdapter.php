@@ -61,12 +61,12 @@ class NonLockingMemoryAdapter implements AdapterInterface, IncrementInterface {
 	}
 
 	/**
-	 * Removes a single value from the cache
+	 * Deletes a single value from the cache
 	 *
 	 * @param  string $key  the object key
 	 * @return boolean      true if the value was deleted, else false
 	 */
-	public function remove($key) {
+	public function delete($key) {
 		$exists = $this->exists($key);
 		unset($this->data[$key]);
 
@@ -84,7 +84,7 @@ class NonLockingMemoryAdapter implements AdapterInterface, IncrementInterface {
 	}
 
 	/**
-	 * Removes all values
+	 * Deletes all values
 	 *
 	 * @return boolean  true if the flush was successful, else false
 	 */

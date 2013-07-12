@@ -93,18 +93,18 @@ class APC implements AdapterInterface, LockingInterface {
 	 */
 	public function set($key, $value, $expiration = null) {
 		// explicit delete since APC does not allow multiple store() calls during the same request
-		$this->remove($key);
+		$this->delete($key);
 
 		return apc_store($key, serialize($value), $expiration);
 	}
 
 	/**
-	 * Removes a single value from the cache
+	 * Deletes a single value from the cache
 	 *
 	 * @param  string $key  the object key
 	 * @return boolean      true if the value was deleted, else false
 	 */
-	public function remove($key) {
+	public function delete($key) {
 		return apc_delete($key);
 	}
 
@@ -127,7 +127,7 @@ class APC implements AdapterInterface, LockingInterface {
 	}
 
 	/**
-	 * Removes all values
+	 * Deletes all values
 	 *
 	 * @return boolean  true if the flush was successful, else false
 	 */
@@ -150,7 +150,7 @@ class APC implements AdapterInterface, LockingInterface {
 	/**
 	 * Releases a lock
 	 *
-	 * This method will use apc_delete() to remove a lock.
+	 * This method will use apc_delete() to delete a lock.
 	 *
 	 * @param  string $key  the key to unlock
 	 * @return boolean      true if successful, else false

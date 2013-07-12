@@ -108,13 +108,13 @@ abstract class Adapter_BaseTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * @depends  testExists
 	 */
-	public function testRemove() {
+	public function testDelete() {
 		$adapter = $this->getAdapter();
 		$adapter->set('key', 'abc');
 
-		$this->assertTrue($adapter->remove('key'));
+		$this->assertTrue($adapter->delete('key'));
 		$this->assertFalse($adapter->exists('key'));
-		$this->assertFalse($adapter->remove('key'));
+		$this->assertFalse($adapter->delete('key'));
 	}
 
 	/**
@@ -169,7 +169,7 @@ abstract class Adapter_BaseTest extends PHPUnit_Framework_TestCase {
 		$this->assertSame('content',     $adapter->get('foo'));
 		$this->assertSame('FOO content', $adapter->get('FOO'));
 
-		$adapter->remove('foo');
+		$adapter->delete('foo');
 
 		$this->assertFalse($adapter->exists('foo'));
 		$this->assertTrue($adapter->exists('FOO'));
@@ -197,7 +197,7 @@ abstract class Adapter_BaseTest extends PHPUnit_Framework_TestCase {
 		$this->assertTrue($adapter->hasLock('foo'));
 		$this->assertTrue($adapter->hasLock('bar'));
 
-		// a clear should remove the locks as well
+		// a clear should delete the locks as well
 		$adapter->clear();
 
 		// locks are gone

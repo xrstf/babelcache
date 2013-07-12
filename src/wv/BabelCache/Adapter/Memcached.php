@@ -130,12 +130,12 @@ class Memcached implements AdapterInterface, IncrementInterface, LockingInterfac
 	}
 
 	/**
-	 * Removes a single value from the cache
+	 * Deletes a single value from the cache
 	 *
 	 * @param  string $key  the object key
 	 * @return boolean      true if the value was deleted, else false
 	 */
-	public function remove($key) {
+	public function delete($key) {
 		return $this->memcached->delete($key);
 	}
 
@@ -152,7 +152,7 @@ class Memcached implements AdapterInterface, IncrementInterface, LockingInterfac
 	}
 
 	/**
-	 * Removes all values
+	 * Deletes all values
 	 *
 	 * @return boolean  true if the flush was successful, else false
 	 */
@@ -187,7 +187,7 @@ class Memcached implements AdapterInterface, IncrementInterface, LockingInterfac
 	/**
 	 * Releases a lock
 	 *
-	 * This method will remove a lock for a specific key.
+	 * This method will delete a lock for a specific key.
 	 *
 	 * @param  string $key  the key
 	 * @return boolean      true if the lock was released or there was no lock, else false

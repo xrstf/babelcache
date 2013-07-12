@@ -110,13 +110,13 @@ abstract class PDO implements AdapterInterface, LockingInterface {
 	}
 
 	/**
-	 * Removes a single value from the cache
+	 * Deletes a single value from the cache
 	 *
 	 * @param  string $key  the object key
 	 * @return boolean      true if the value was deleted, else false
 	 */
-	public function remove($key) {
-		$stmt = $this->getStatement('remove');
+	public function delete($key) {
+		$stmt = $this->getStatement('delete');
 		$stmt->execute(array('hash' => sha1($key)));
 		$stmt->closeCursor();
 
@@ -124,7 +124,7 @@ abstract class PDO implements AdapterInterface, LockingInterface {
 	}
 
 	/**
-	 * Removes all values
+	 * Deletes all values
 	 *
 	 * @return boolean  true if the flush was successful, else false
 	 */
@@ -154,13 +154,13 @@ abstract class PDO implements AdapterInterface, LockingInterface {
 	/**
 	 * Releases a lock
 	 *
-	 * This method will remove a lock for a specific key.
+	 * This method will delete a lock for a specific key.
 	 *
 	 * @param  string $key  the key
 	 * @return boolean      true if the lock was released or there was no lock, else false
 	 */
 	public function unlock($key) {
-		$stmt = $this->getStatement('remove');
+		$stmt = $this->getStatement('delete');
 		$stmt->execute(array('hash' => 'lock:'.sha1($key)));
 		$stmt->closeCursor();
 

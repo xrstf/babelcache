@@ -132,14 +132,14 @@ abstract class PDO implements CacheInterface {
 	}
 
 	/**
-	 * Removes a single value from the cache
+	 * Deletes a single value from the cache
 	 *
 	 * @param  string $namespace  the namespace to use
 	 * @param  string $key        the object key
 	 * @return boolean            true if the value was deleted, else false
 	 */
-	public function remove($namespace, $key) {
-		$stmt = $this->getStatement('remove');
+	public function delete($namespace, $key) {
+		$stmt = $this->getStatement('delete');
 		$stmt->execute(array('prefix' => $this->prefix, 'namespace' => $namespace, 'key' => $key));
 		$stmt->closeCursor();
 
@@ -147,7 +147,7 @@ abstract class PDO implements CacheInterface {
 	}
 
 	/**
-	 * Removes all values in a given namespace
+	 * Deletes all values in a given namespace
 	 *
 	 * @param  string  $namespace  the namespace to use
 	 * @param  boolean $recursive  if set to true, all child namespaces will be cleared as well
@@ -193,14 +193,14 @@ abstract class PDO implements CacheInterface {
 	/**
 	 * Releases a lock
 	 *
-	 * This method will remove a lock for a specific key.
+	 * This method will delete a lock for a specific key.
 	 *
 	 * @param  string $namespace  the namespace
 	 * @param  string $key        the key
 	 * @return boolean            true if the lock was released, else false
 	 */
 	public function unlock($namespace, $key) {
-		$stmt = $this->getStatement('remove');
+		$stmt = $this->getStatement('delete');
 		$stmt->execute(array('prefix' => $this->prefix, 'namespace' => $namespace, 'key' => 'lock:'.sha1($key)));
 
 		return $stmt->rowCount() > 0;
