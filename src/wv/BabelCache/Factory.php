@@ -196,22 +196,23 @@ abstract class Factory {
 	}
 
 	/**
-	 * Create a PSR-compatible cache instance
+	 * Create a PSR-compatible pool instance
 	 *
 	 * To use this, you must have the actual PSR interfaces in your project.
 	 * They are not part of BabelCache, as they are not yet released or finished.
 	 *
-	 * @throws Exception                 if the adapter was not found or is not available
-	 * @param  string $adapter           the adapter key
-	 * @return Psr\Cache\CacheInterface  a fresh cache instance
+	 * @throws Exception                if the adapter was not found or is not available
+	 * @param  string $adapter          the adapter key
+	 * @return Psr\Cache\PoolInterface  a fresh pool instance
 	 */
-	public function getPsrCache($adapter) {
+	public function getPsrPool($adapter) {
 		// We can't test this yet...
+
 		// @codeCoverageIgnoreStart
 		$adapter = $this->getAdapter($adapter);
-		$cache   = new Psr\Cache($adapter);
+		$pool    = new Psr\Pool($adapter);
 
-		return $cache;
+		return $pool;
 		// @codeCoverageIgnoreEnd
 	}
 

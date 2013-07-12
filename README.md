@@ -103,8 +103,8 @@ Constructing caches is as easy as constructing adapters:
 
 ### PSR Wrapper
 
-BabelCache does not follow the PSR proposal perfectly. It skips the
-``CacheItem`` objects and handles the raw cache data. We believe the way to
+BabelCache does not follow the PSR proposal. It skips the ``Item`` objects and
+has all methods on the services rather than on the items. We believe the way to
 encapsulate cache data in objects is a needless overhead.
 
 However, to use BabelCache in a PSR world, you can optionally wrap BabelCache
@@ -116,12 +116,12 @@ are used.
     <?php
 
     $factory = new MyFactory();
-    $adapter = $factory->getPsrCache('apc');  // returns a Psr\Cache instance wrapping the APC adapter
+    $adapter = $factory->getPsrPool('apc');  // returns a Psr\Pool instance wrapping the APC adapter
 
-    $adapter->set('key', 'value');
+    $adapter->getItem('mykey')->set('value');
 
-    $item = $adapter->get('key'); // returns a CacheItem
-    print $item->getValue();
+    $item = $adapter->getItem('mykey'); // returns an Item
+    print $item->get();
 
 **Note:** The PSR proposal is still just a proposal, so there are no official
 interfaces yet. Until those are available, you have to provide them yourself,
