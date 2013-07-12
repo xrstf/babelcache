@@ -210,7 +210,7 @@ abstract class Factory {
 
 		// @codeCoverageIgnoreStart
 		$adapter = $this->getAdapter($adapter);
-		$pool    = new Psr\Pool($adapter);
+		$pool    = new Psr\Generic\Pool($adapter);
 
 		return $pool;
 		// @codeCoverageIgnoreEnd

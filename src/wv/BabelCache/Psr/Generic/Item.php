@@ -8,7 +8,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-namespace wv\BabelCache\Psr;
+namespace wv\BabelCache\Psr\Generic;
 
 use DateTime;
 use Psr\Cache\ItemInterface;

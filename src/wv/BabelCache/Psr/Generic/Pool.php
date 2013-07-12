@@ -8,12 +8,12 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-namespace wv\BabelCache\Psr;
+namespace wv\BabelCache\Psr\Generic;
 
 use Psr\Cache\PoolInterface;
 use Psr\Cache\ItemInterface;
-use Psr\Cache\InvalidArgumentException;
 use wv\BabelCache\Adapter\AdapterInterface;
+use wv\BabelCache\Psr\BrokenKeyException;
 
 /**
  * Wrapper around BabelCache's interface to be PSR compliant
@@ -90,12 +90,12 @@ class Pool implements PoolInterface {
 	/**
 	 * Checks if a key is syntactically valid
 	 *
-	 * @param  string $key               the cache key
-	 * @throws InvalidArgumentException  if there are forbidden characters
+	 * @param  string $key         the cache key
+	 * @throws BrokenKeyException  if there are forbidden characters
 	 */
 	protected function checkKey($key) {
 		if (!preg_match('#^[^{}()/\\@:]+$#', $key)) {
-			throw new InvalidArgumentException('Invalid cache key given!');
+			throw new BrokenKeyException('Invalid cache key given!');
 		}
 	}
 }
