@@ -9,10 +9,12 @@ support for the [PSR Cache Proposal](https://github.com/php-fig/fig-standards/pu
 Supported caching backends are:
 
 * [APC](http://www.php.net/manual/en/book.apc.php)
+* Blackhole (useful for transparently disabling caching)
 * Filesystem
 * [Memcached](http://memcached.org/) (``php_memcache``, ``php_memcached`` and a
   PHP-only implementation for memcached with authentification via SASL)
 * [MariaDB & MySQL](https://mariadb.org/)
+* Memory (runtime caching only)
 * [Redis](http://redis.io/) (requires the pure PHP ``predis/prdis`` library)
 * [SQLite](http://www.sqlite.org/)
 * [XCache](http://xcache.lighttpd.net/)
