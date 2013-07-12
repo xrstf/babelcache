@@ -55,6 +55,7 @@ abstract class PDO implements CacheInterface {
 	}
 
 	abstract protected function getQueries($table);
+	abstract protected function supportsRawData();
 
 	/**
 	 * Gets a value out of the cache
@@ -78,7 +79,13 @@ abstract class PDO implements CacheInterface {
 
 		$found = !empty($row) && !empty($row['payload']);
 
-		return $found ? unserialize(base64_decode($row['payload'])) : $default;
+		if (!$found) {
+			return $default;
+		}
+
+		$payload = $this->supportsRawData() ? $row['payload'] : base64_decode($row['payload']);
+
+		return unserialize($payload);
 	}
 
 	/**
@@ -94,7 +101,11 @@ abstract class PDO implements CacheInterface {
 	 */
 	public function set($namespace, $key, $value) {
 		$stmt    = $this->getStatement('set');
-		$payload = base64_encode(serialize($value));
+		$payload = serialize($value);
+
+		if (!$this->supportsRawData()) {
+			$payload = base64_encode($payload);
+		}
 
 		// update/insert data
 		$stmt->execute(array('prefix' => $this->prefix, 'namespace' => $namespace, 'key' => $key, 'payload' => $payload));

@@ -60,4 +60,8 @@ class SQLite extends PDO {
 			'lock'   => sprintf('INSERT OR IGNORE INTO %s (keyhash, payload) VALUES (:hash, :payload)', $table)
 		);
 	}
+
+	protected function supportsRawData() {
+		return false;
+	}
 }

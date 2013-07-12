@@ -60,4 +60,8 @@ class MySQL extends PDO {
 			'lock'   => sprintf('INSERT IGNORE INTO %s (prefix, namespace, keyname, payload) VALUES (:prefix, :namespace, :key, "")', $table),
 		);
 	}
+
+	protected function supportsRawData() {
+		return true;
+	}
 }

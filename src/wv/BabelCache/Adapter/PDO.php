@@ -41,6 +41,7 @@ abstract class PDO implements AdapterInterface, LockingInterface {
 	}
 
 	abstract protected function getQueries($table);
+	abstract protected function supportsRawData();
 
 	/**
 	 * Gets a value out of the cache
@@ -62,7 +63,9 @@ abstract class PDO implements AdapterInterface, LockingInterface {
 
 		$found = !empty($row) && !empty($row['payload']);
 
-		return $found ? unserialize(base64_decode($row['payload'])) : null;
+		$payload = $this->supportsRawData() ? $row['payload'] : base64_decode($row['payload']);
+
+		return unserialize($payload);
 	}
 
 	/**
@@ -77,7 +80,11 @@ abstract class PDO implements AdapterInterface, LockingInterface {
 	 */
 	public function set($key, $value) {
 		$stmt    = $this->getStatement('set');
-		$payload = base64_encode(serialize($value));
+		$payload = serialize($value);
+
+		if (!$this->supportsRawData()) {
+			$payload = base64_encode($payload);
+		}
 
 		// update/insert data
 		$stmt->execute(array('hash' => sha1($key), 'payload' => $payload));
