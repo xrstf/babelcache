@@ -94,7 +94,7 @@ class Pool implements PoolInterface {
 	 * @throws InvalidArgumentException  if there are forbidden characters
 	 */
 	protected function checkKey($key) {
-		if (!preg_match('#^[^{}()/\\@:]$#', $key)) {
+		if (!preg_match('#^[^{}()/\\@:]+$#', $key)) {
 			throw new InvalidArgumentException('Invalid cache key given!');
 		}
 	}
