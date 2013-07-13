@@ -19,6 +19,21 @@ abstract class Cache_BaseTest extends PHPUnit_Framework_TestCase {
 		$this->assertNull($cache->get('t.foo', 'key', null));
 	}
 
+	public function testSetPrefix() {
+		$cache = $this->getCache();
+
+		$cache->setPrefix('foobar');
+		$cache->set('t.foo', 'key', 'value');
+
+		$cache->setPrefix('qux');
+		$this->assertSame('default', $cache->get('t.foo', 'key', 'default'));
+		$cache->set('t.foo', 'key', 'mumblefoo');
+		$this->assertSame('mumblefoo', $cache->get('t.foo', 'key'));
+
+		$cache->setPrefix('foobar');
+		$this->assertSame('value', $cache->get('t.foo', 'key'));
+	}
+
 	/**
 	 * @dataProvider setGetProvider
 	 */

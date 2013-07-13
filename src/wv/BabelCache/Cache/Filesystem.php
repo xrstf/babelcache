@@ -12,6 +12,7 @@ namespace wv\BabelCache\Cache;
 
 use wv\BabelCache\CacheInterface;
 use wv\BabelCache\Exception;
+use wv\BabelCache\Factory;
 use wv\BabelCache\Util;
 
 /**
@@ -41,6 +42,20 @@ class Filesystem implements CacheInterface {
 		$this->filePerm = (int) $filePerm;
 		$this->dirPerm  = (int) $dirPerm;
 		$this->prefix   = '';
+	}
+
+	/**
+	 * Checks whether a caching system is avilable
+	 *
+	 * This method will be called before an instance is created. It is supposed
+	 * to check for the required functions and whether user data caching is
+	 * enabled.
+	 *
+	 * @param  Factory $factory  the project's factory to give the adapter some more knowledge
+	 * @return boolean           true if the cache can be used, else false
+	 */
+	public static function isAvailable(Factory $factory = null) {
+		return true;
 	}
 
 	/**

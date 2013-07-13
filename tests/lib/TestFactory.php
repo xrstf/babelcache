@@ -9,8 +9,10 @@
  */
 
 use wv\BabelCache\Factory;
-use wv\BabelCache\Adapter\SQLite;
-use wv\BabelCache\Adapter\MySQL;
+use wv\BabelCache\Adapter\SQLite as SQLiteAdapter;
+use wv\BabelCache\Cache\SQLite as SQLiteCache;
+use wv\BabelCache\Adapter\MySQL as MySQLAdapter;
+use wv\BabelCache\Cache\MySQL as MySQLCache;
 
 class TestFactory extends Factory {
 	protected $cacheDir;
@@ -42,7 +44,13 @@ class TestFactory extends Factory {
 
 	public function getSQLiteConnection() {
 		if ($this->sqliteConnection === true) {
-			$connection = SQLite::connect(':memory:');
+			if ($this->sqliteTableName === 'tmp_adapter') {
+				$connection = SQLiteAdapter::connect(':memory:');
+			}
+			else {
+				$connection = SQLiteCache::connect(':memory:');
+			}
+
 			$connection->exec('DROP TABLE IF EXISTS "tmp_adapter"');
 			$connection->exec('DROP TABLE IF EXISTS "tmp_cache"');
 			$connection->exec('CREATE TABLE "tmp_adapter" ("keyhash" VARCHAR(50), "payload" BLOB, PRIMARY KEY ("keyhash"))');
@@ -62,8 +70,14 @@ class TestFactory extends Factory {
 		static $called = 0;
 
 		if ($this->mysqlConnection === true) {
-			$host       = ++$called % 2 ? 'localhost' : 'localhost:3306';
-			$connection = MySQL::connect($host, 'develop', 'develop', 'test');
+			$host = ++$called % 2 ? 'localhost' : 'localhost:3306';
+
+			if ($this->mysqlTableName === 'tmp_adapter') {
+				$connection = MySQLAdapter::connect($host, 'develop', 'develop', 'test');
+			}
+			else {
+				$connection = MySQLCache::connect($host, 'develop', 'develop', 'test');
+			}
 
 			$connection->exec('DROP TABLE IF EXISTS tmp_adapter');
 			$connection->exec('DROP TABLE IF EXISTS tmp_cache');

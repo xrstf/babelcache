@@ -48,6 +48,14 @@ class FactoryTest extends PHPUnit_Framework_TestCase {
 		$factory->getCache('nope');
 	}
 
+	/**
+	 * @expectedException  wv\BabelCache\Exception
+	 */
+	public function testTestNotExistingCache() {
+		$factory = new TestFactory('fscache');
+		$factory->isAvailable('nope');
+	}
+
 	public function testGetAdapter() {
 		$factory = new TestFactory('fscache');
 		$this->assertInstanceOf('wv\BabelCache\Adapter\Memory', $factory->getAdapter('memory'));

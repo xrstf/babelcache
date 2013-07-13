@@ -14,4 +14,8 @@ class Cache_MemoryTest extends Cache_BaseTest {
 	protected function getCache() {
 		return new Memory();
 	}
+
+	public function testIsAvailable() {
+		$this->assertTrue(Memory::isAvailable());
+	}
 }

@@ -42,7 +42,7 @@ class SQLite extends PDO {
 	 * @return \PDO                  the database connection instance
 	 */
 	public static function connect($databaseFile) {
-		return SQLiteAdapter::isAvailable($databaseFile);
+		return SQLiteAdapter::connect($databaseFile);
 	}
 
 	protected function getQueries($table) {

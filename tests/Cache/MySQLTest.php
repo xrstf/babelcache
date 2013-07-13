@@ -8,7 +8,7 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-use wv\BabelCache\Adapter\MySQL;
+use wv\BabelCache\Cache\MySQL;
 
 class Cache_MySQLTest extends Cache_BaseTest {
 	protected function getCache() {

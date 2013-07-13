@@ -17,17 +17,13 @@ class Cache_FilesystemTest extends Cache_BaseTest {
 
 		$cache->clear('t', true);
 
-		return $cache;
-	}
-
-	public function testSetPrefix() {
-		$cache = $this->getCache();
-
 		$cache->setPrefix('foobar');
-		$cache->set('t.foo', 'key', 'value');
+		$cache->clear('t', true);
 
 		$cache->setPrefix('qux');
-		$this->assertSame('default', $cache->get('t.foo', 'key', 'default'));
+		$cache->clear('t', true);
+
+		return $cache;
 	}
 
 	/**
@@ -35,5 +31,9 @@ class Cache_FilesystemTest extends Cache_BaseTest {
 	 */
 	public function testBadDataDirectory() {
 		new Filesystem('mumblefoo');
+	}
+
+	public function testIsAvailable() {
+		$this->assertTrue(Filesystem::isAvailable());
 	}
 }

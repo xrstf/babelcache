@@ -63,6 +63,10 @@ abstract class PDO implements AdapterInterface, LockingInterface {
 
 		$found = !empty($row) && !empty($row['payload']);
 
+		if (!$found) {
+			return null;
+		}
+
 		$payload = $this->supportsRawData() ? $row['payload'] : base64_decode($row['payload']);
 
 		return unserialize($payload);

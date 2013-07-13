@@ -16,6 +16,10 @@ class Cache_GenericTest extends Cache_BaseTest {
 		return new Generic(new Memory());
 	}
 
+	public function testIsAvailable() {
+		$this->assertTrue(Generic::isAvailable());
+	}
+
 	public function testGetAdapter() {
 		$cache = $this->getCache();
 		$this->assertInstanceOf('wv\BabelCache\AdapterInterface', $cache->getAdapter());

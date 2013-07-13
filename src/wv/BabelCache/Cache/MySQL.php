@@ -45,7 +45,7 @@ class MySQL extends PDO {
 	 * @return \PDO              the database connection instance
 	 */
 	public static function connect($host, $user, $password, $database) {
-		return MySQLAdapter::isAvailable($host, $user, $password, $database);
+		return MySQLAdapter::connect($host, $user, $password, $database);
 	}
 
 	protected function getQueries($table) {

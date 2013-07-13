@@ -20,6 +20,18 @@ namespace wv\BabelCache;
  */
 interface CacheInterface {
 	/**
+	 * Checks whether a caching system is avilable
+	 *
+	 * This method will be called before an instance is created. It is supposed
+	 * to check for the required functions and whether user data caching is
+	 * enabled.
+	 *
+	 * @param  Factory $factory  the project's factory to give the adapter some more knowledge
+	 * @return boolean           true if the cache can be used, else false
+	 */
+	public static function isAvailable(Factory $factory = null);
+
+	/**
 	 * Sets a value
 	 *
 	 * This method will put a value into the cache. If it already exists, it

@@ -11,6 +11,7 @@
 namespace wv\BabelCache\Cache;
 
 use wv\BabelCache\CacheInterface;
+use wv\BabelCache\Factory;
 use wv\BabelCache\Util;
 
 /**
@@ -19,8 +20,23 @@ use wv\BabelCache\Util;
  * @package BabelCache.Cache
  */
 class Memory implements CacheInterface {
-	protected $data  = array();  ///< array  contains the cached data {key: value, key: value}
-	protected $locks = array();  ///< array  contains the locked keys
+	protected $data   = array();  ///< array   contains the cached data {key: value, key: value}
+	protected $locks  = array();  ///< array   contains the locked keys
+	protected $prefix = '';       ///< string  cache key prefix
+
+	/**
+	 * Checks whether a caching system is avilable
+	 *
+	 * This method will be called before an instance is created. It is supposed
+	 * to check for the required functions and whether user data caching is
+	 * enabled.
+	 *
+	 * @param  Factory $factory  the project's factory to give the adapter some more knowledge
+	 * @return boolean           true if the cache can be used, else false
+	 */
+	public static function isAvailable(Factory $factory = null) {
+		return true;
+	}
 
 	/**
 	 * Sets a value
@@ -34,7 +50,7 @@ class Memory implements CacheInterface {
 	 * @return mixed              the set value
 	 */
 	public function set($namespace, $key, $value) {
-		$this->data[$namespace][$key] = $value;
+		$this->data[$this->prefix][$namespace][$key] = $value;
 
 		return $value;
 	}
@@ -53,7 +69,7 @@ class Memory implements CacheInterface {
 	public function get($namespace, $key, $default = null, &$found = null) {
 		$found = $this->exists($namespace, $key);
 
-		return $found ? $this->data[$namespace][$key] : $default;
+		return $found ? $this->data[$this->prefix][$namespace][$key] : $default;
 	}
 
 	/**
@@ -65,7 +81,7 @@ class Memory implements CacheInterface {
 	 */
 	public function delete($namespace, $key) {
 		$exists = $this->exists($namespace, $key);
-		unset($this->data[$namespace][$key]);
+		unset($this->data[$this->prefix][$namespace][$key]);
 
 		return $exists;
 	}
@@ -78,7 +94,7 @@ class Memory implements CacheInterface {
 	 * @return boolean            true if the value exists, else false
 	 */
 	public function exists($namespace, $key) {
-		return isset($this->data[$namespace]) && array_key_exists($key, $this->data[$namespace]);
+		return isset($this->data[$this->prefix][$namespace]) && array_key_exists($key, $this->data[$this->prefix][$namespace]);
 	}
 
 	/**
@@ -98,18 +114,18 @@ class Memory implements CacheInterface {
 	}
 
 	protected function clearArray($array, $namespace, $recursive) {
-		unset($array[$namespace]);
+		unset($array[$this->prefix][$namespace]);
 
 		if (!$recursive) {
 			return $array;
 		}
 
 		$pattern    = "$namespace.*";
-		$namespaces = array_keys($array);
+		$namespaces = array_keys($array[$this->prefix]);
 
 		foreach ($namespaces as $pkg) {
 			if (fnmatch($pattern, $pkg)) {
-				unset($array[$pkg]);
+				unset($array[$this->prefix][$pkg]);
 			}
 		}
 
@@ -127,8 +143,8 @@ class Memory implements CacheInterface {
 	 * @return boolean            true if the lock was aquired, else false
 	 */
 	public function lock($namespace, $key) {
-		if (isset($this->locks[$namespace][$key])) return false;
-		$this->locks[$namespace][$key] = 1;
+		if (isset($this->locks[$this->prefix][$namespace][$key])) return false;
+		$this->locks[$this->prefix][$namespace][$key] = 1;
 
 		return true;
 	}
@@ -143,8 +159,8 @@ class Memory implements CacheInterface {
 	 * @return boolean            true if the lock was released, else false
 	 */
 	public function unlock($namespace, $key) {
-		if (!isset($this->locks[$namespace][$key])) return false;
-		unset($this->locks[$namespace][$key]);
+		if (!isset($this->locks[$this->prefix][$namespace][$key])) return false;
+		unset($this->locks[$this->prefix][$namespace][$key]);
 
 		return true;
 	}
@@ -157,7 +173,7 @@ class Memory implements CacheInterface {
 	 * @return boolean            true if the key is locked, else false
 	 */
 	public function hasLock($namespace, $key) {
-		return isset($this->locks[$namespace][$key]);
+		return isset($this->locks[$this->prefix][$namespace][$key]);
 	}
 
 	/**
@@ -170,6 +186,6 @@ class Memory implements CacheInterface {
 	 * @param string $prefix  the prefix to use (will be trimmed)
 	 */
 	public function setPrefix($prefix) {
-		// do nothing
+		$this->prefix = trim($prefix);
 	}
 }
