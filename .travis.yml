@@ -14,5 +14,4 @@ before_script:
    - composer require predis/predis=~0.8
    - phpenv config-add tests/travis/php_extensions.ini
 
-install: composer update
 script: phpunit --coverage-text
