@@ -70,13 +70,16 @@ class TestFactory extends Factory {
 		static $called = 0;
 
 		if ($this->mysqlConnection === true) {
-			$host = ++$called % 2 ? 'localhost' : 'localhost:3306';
+			$host   = ++$called % 2 ? 'localhost' : 'localhost:3306';
+			$travis = getenv('TRAVIS') !== false;
+			$user   = $travis ? 'travis' : 'develop';
+			$pass   = $travis ? '' : 'develop';
 
 			if ($this->mysqlTableName === 'tmp_adapter') {
-				$connection = MySQLAdapter::connect($host, 'develop', 'develop', 'test');
+				$connection = MySQLAdapter::connect($host, $user, $pass, 'test');
 			}
 			else {
-				$connection = MySQLCache::connect($host, 'develop', 'develop', 'test');
+				$connection = MySQLCache::connect($host, $user, $pass, 'test');
 			}
 
 			$connection->exec('DROP TABLE IF EXISTS tmp_adapter');
