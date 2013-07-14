@@ -162,5 +162,5 @@ License
 
 BabelCache is licensed under the MIT License - see the LICENSE file for details.
 
-[travis]: https://secure.travis-ci.org/webvariants/babelcache
-[travisimg]: https://secure.travis-ci.org/webvariants/babelcache.png
+[travis]: https://secure.travis-ci.org/xrstf/babelcache
+[travisimg]: https://secure.travis-ci.org/xrstf/babelcache.png
