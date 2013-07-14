@@ -13,6 +13,7 @@ namespace wv\BabelCache\Adapter;
 use wv\BabelCache\AdapterInterface;
 use wv\BabelCache\Factory;
 use wv\BabelCache\IncrementInterface;
+use wv\BabelCache\LockingInterface;
 
 /**
  * WinCache
@@ -23,7 +24,7 @@ use wv\BabelCache\IncrementInterface;
  * @see     http://www.iis.net/downloads/microsoft/wincache-extension
  * @package BabelCache.Adapter
  */
-class WinCache implements AdapterInterface, IncrementInterface {
+class WinCache implements AdapterInterface, IncrementInterface, LockingInterface {
 	/**
 	 * Checks whether a caching system is avilable
 	 *
@@ -74,7 +75,7 @@ class WinCache implements AdapterInterface, IncrementInterface {
 	 * @return boolean      true if the value was deleted, else false
 	 */
 	public function delete($key) {
-		return xcache_unset($key);
+		return wincache_ucache_delete($key);
 	}
 
 	/**
@@ -106,5 +107,39 @@ class WinCache implements AdapterInterface, IncrementInterface {
 	 */
 	public function increment($key) {
 		return wincache_ucache_inc($key);
+	}
+
+	/**
+	 * Locks a key
+	 *
+	 * This method will create a lock for a specific key.
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the lock was aquired, else false
+	 */
+	public function lock($key) {
+		return wincache_ucache_add('lock:'.$key, 1);
+	}
+
+	/**
+	 * Releases a lock
+	 *
+	 * This method will delete a lock for a specific key.
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the lock was released or there was no lock, else false
+	 */
+	public function unlock($key) {
+		return wincache_ucache_delete('lock:'.$key);
+	}
+
+	/**
+	 * Check if a key is locked
+	 *
+	 * @param  string $key  the key
+	 * @return boolean      true if the key is locked, else false
+	 */
+	public function hasLock($key) {
+		return wincache_ucache_exists('lock:'.$key);
 	}
 }
