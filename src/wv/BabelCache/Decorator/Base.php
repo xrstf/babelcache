@@ -8,35 +8,25 @@
  * http://www.opensource.org/licenses/mit-license.php
  */
 
-namespace wv\BabelCache\Cache;
+namespace wv\BabelCache\Decorator;
 
 use wv\BabelCache\CacheInterface;
 
 /**
- * Cache wrapper to generically handle timeouts
+ * Base class for decorators
  *
- * Since not all implementations provide native support for timeouts, this class
- * puts a layer around another, real cache, adding and handling timeout
- * information transparently to all values.
- *
- * @package BabelCache.Cache
+ * @package BabelCache.Decorator
  */
-class Expiring implements CacheInterface {
+class Base {
 	protected $cache; ///< CacheInterface  the wrapped caching instance
-	protected $ttl;
-
-	const EXPIRE_KEY = '__expire__';
-	const VALUE_KEY  = '__value__';
 
 	/**
 	 * Constructor
 	 *
 	 * @param CacheInterface $realCache  the caching instance to be wrapped
-	 * @param int            $ttl        default ttl for all written items
 	 */
-	public function __construct(CacheInterface $realCache, $ttl) {
+	public function __construct(CacheInterface $realCache) {
 		$this->cache = $realCache;
-		$this->ttl   = (int) $ttl;
 	}
 
 	/**
@@ -48,14 +38,10 @@ class Expiring implements CacheInterface {
 	 * @param  string $namespace  namespace to use
 	 * @param  string $key        object key
 	 * @param  mixed  $value      value to store
-	 * @param  mixed  $ttl        timeout in seconds
 	 * @return mixed              the set value
 	 */
-	public function set($namespace, $key, $value, $ttl = null) {
-		$expire = time() + ($ttl === null ? $this->ttl : $ttl);
-		$data   = array(self::EXPIRE_KEY => $expire, self::VALUE_KEY => $value);
-
-		return $this->cache->set($namespace, $key, $data);
+	public function set($namespace, $key, $value) {
+		return $this->cache->set($namespace, $key, $value);
 	}
 
 	/**
@@ -70,22 +56,7 @@ class Expiring implements CacheInterface {
 	 * @return mixed              the found value if not expired or $default
 	 */
 	public function get($namespace, $key, $default = null, &$found = null) {
-		$found = false;
-		$data  = $this->cache->get($namespace, $key, null, $found);
-
-		if (!$found) {
-			return $default;
-		}
-
-		$expired = isset($data[self::EXPIRE_KEY]) ? time() > $data[self::EXPIRE_KEY] : false;
-
-		if ($expired) {
-			return $default;
-		}
-
-		$found = true; // update the reference
-
-		return isset($data[self::VALUE_KEY]) ? $data[self::VALUE_KEY] : $data;
+		return $this->cache->get($namespace, $key, $default, $found);
 	}
 
 	/**

@@ -9,9 +9,9 @@
  */
 
 use wv\BabelCache\Cache\Memory;
-use wv\BabelCache\Cache\Compat;
+use wv\BabelCache\Decorator\Compat;
 
-class Cache_CompatTest extends Cache_BaseTest {
+class Decorator_CompatTest extends PHPUnit_Framework_TestCase {
 	protected function getCache() {
 		return new Compat(new Memory());
 	}
@@ -37,5 +37,13 @@ class Cache_CompatTest extends Cache_BaseTest {
 		$this->assertSame($exists1, $cache->exists($l1, 'foo'));
 		$this->assertSame($exists2, $cache->exists($l2, 'foo'));
 		$this->assertSame($exists3, $cache->exists($l3, 'foo'));
+	}
+
+	public function clearProvider() {
+		return array(
+			array('l3', true,  true,  false),
+			array('l2', true,  false, false),
+			array('l1', false, false, false)
+		);
 	}
 }
