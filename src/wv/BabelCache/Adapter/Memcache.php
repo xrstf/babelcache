@@ -118,7 +118,7 @@ class Memcache implements AdapterInterface, IncrementInterface, LockingInterface
 
 		$value = reset($values);
 
-		return ctype_digit($value) ? (int) $value : unserialize($value);
+		return (is_int($value) || ctype_digit($value)) ? (int) $value : unserialize($value);
 	}
 
 	/**

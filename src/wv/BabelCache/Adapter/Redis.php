@@ -78,7 +78,7 @@ class Redis implements AdapterInterface, IncrementInterface, LockingInterface {
 			return null;
 		}
 
-		return ctype_digit($value) ? (int) $value : unserialize($value);
+		return (is_int($value) || ctype_digit($value)) ? (int) $value : unserialize($value);
 	}
 
 	/**

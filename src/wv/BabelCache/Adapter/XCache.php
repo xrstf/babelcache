@@ -57,7 +57,7 @@ class XCache implements AdapterInterface, IncrementInterface {
 
 		$value = xcache_get($key);
 
-		return ctype_digit($value) ? (int) $value : unserialize($value);
+		return (is_int($value) || ctype_digit($value)) ? (int) $value : unserialize($value);
 	}
 
 	/**
