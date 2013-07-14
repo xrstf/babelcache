@@ -139,13 +139,23 @@ abstract class Adapter_BaseTest extends PHPUnit_Framework_TestCase {
 		$adapter->set('key', 80000);
 		$this->assertSame(80001, $adapter->increment('key'));
 
-		// test a negative value
-		$adapter->set('key', -23);
-		$this->assertSame(-22, $adapter->increment('key'));
-
 		// non-existing keys should not be created
 		$this->assertFalse($adapter->increment('foo'));
 		$this->assertFalse($adapter->exists('foo'));
+	}
+
+	/**
+	 * @depends  testSetGet
+	 */
+	public function testIncrementNegativeValues() {
+		$adapter = $this->getAdapter();
+
+		if (!($adapter instanceof wv\BabelCache\IncrementInterface)) {
+			$this->markTestSkipped('Adapter does not implement IncrementInterface.');
+		}
+
+		$adapter->set('key', -23);
+		$this->assertSame(-22, $adapter->increment('key'));
 	}
 
 	/**

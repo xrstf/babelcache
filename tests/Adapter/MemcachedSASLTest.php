@@ -23,4 +23,8 @@ class Adapter_MemcachedSASLTest extends Adapter_BaseTest {
 
 		return $adapter;
 	}
+
+	public function testIncrementNegativeValues() {
+		$this->markTestSkipped('Memcached does not support incrementing negative values.');
+	}
 }
