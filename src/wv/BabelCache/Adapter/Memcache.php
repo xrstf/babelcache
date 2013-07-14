@@ -112,7 +112,13 @@ class Memcache implements AdapterInterface, IncrementInterface, LockingInterface
 		$values = $this->memcached->get(array($key));
 		$found  = count($values) === 1;
 
-		return $found ? reset($values) : null;
+		if (!$found) {
+			return null;
+		}
+
+		$value = reset($values);
+
+		return ctype_digit($value) ? (int) $value : unserialize($value);
 	}
 
 	/**
@@ -126,6 +132,9 @@ class Memcache implements AdapterInterface, IncrementInterface, LockingInterface
 	 * @return boolean        true on success, else false
 	 */
 	public function set($key, $value, $ttl = 0) {
+		// store integers as plain values, so we can easily increment them.
+		$value = is_int($value) ? $value : serialize($value);
+
 		return $this->memcached->set($key, $value, 0, $ttl);
 	}
 
