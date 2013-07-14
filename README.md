@@ -45,7 +45,7 @@ Of course you can also instantiate all classes on your own, if you need to.
 
 ## Overview
 
-BabelCache is divided into three parts:
+BabelCache is divided into four parts:
 
 ### Adapters
 
@@ -85,10 +85,6 @@ In general, the factory takes automatically care of constructing the optimal
 implementation. However, you can force the factory to create a bad combination
 of generic caching and an adapter.
 
-Additionally, there are more high-level caches, like the ``Expiring`` cache,
-which transparently encodes an expiry into the cache values. The ``Cascade``
-cache combines two other caches (one fast and one slow one).
-
 Constructing caches is as easy as constructing adapters:
 
     ::::php
@@ -118,16 +114,45 @@ are used.
     <?php
 
     $factory = new MyFactory();
-    $adapter = $factory->getPsrPool('apc');  // returns a Psr\Pool instance wrapping the APC adapter
+    $pool    = $factory->getPsrPool('apc');  // returns a Psr\Generic\Pool instance wrapping the APC adapter
 
-    $adapter->getItem('mykey')->set('value');
+    $pool->getItem('mykey')->set('value');
 
-    $item = $adapter->getItem('mykey'); // returns an Item
+    $item = $pool->getItem('mykey'); // returns an Item
     print $item->get();
 
 **Note:** The PSR proposal is still just a proposal, so there are no official
 interfaces yet. Until those are available, you have to provide them yourself,
 as BabelCache only contains their implementations.
+
+### Decorators
+
+Additionally, there are a few decorators available, which add additional
+behaviour on top of caches, like the ``Expiring`` cache, which transparently
+encodes an expiry into the cache values.
+
+To use a decorator, just apply it to your cache instance. You can mix
+decorators, if you need to.
+
+    ::::php
+
+    <?php
+
+    $factory = new MyFactory();
+    $cache   = $factory->getCache('apc');
+
+    // make the cache handle timeouts, using 10s as the default timeout
+    $cache = new wv\BabelCache\Decorator\Expiring($cache, 10);
+
+    // set a value that expires in 10 seconds
+    $cache->set('name.space', 'key', 'value');
+
+    // set a value that expires in 42 seconds
+    $cache->set('name.space', 'key', 'value', 42);
+
+    // bring back the old BabelCache 1.x interface
+    $cache = new wv\BabelCache\Decorator\Compat($cache);
+    $cache->flush('name', true); // it's clear() now
 
 License
 -------
