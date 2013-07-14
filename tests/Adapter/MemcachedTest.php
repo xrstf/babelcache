@@ -23,4 +23,32 @@ class Adapter_MemcachedTest extends Adapter_BaseTest {
 
 		return $adapter;
 	}
+
+	public function testIncrement() {
+		$adapter = $this->getAdapter();
+
+		if (!($adapter instanceof wv\BabelCache\IncrementInterface)) {
+			$this->markTestSkipped('Adapter does not implement IncrementInterface.');
+		}
+
+		$adapter->set('key', 41);
+
+		$this->assertSame(41, $adapter->get('key'));
+		$this->assertSame(42, $adapter->increment('key'));
+		$this->assertSame(42, $adapter->get('key'));
+		$this->assertSame(43, $adapter->increment('key'));
+		$this->assertSame(43, $adapter->get('key'));
+
+		// test a larger value
+		$adapter->set('key', 80000);
+		$this->assertSame(80001, $adapter->increment('key'));
+
+		// test a negative value [disabled as memcached seems to have issues with negative values]
+//		$adapter->set('key', -23);
+//		$this->assertSame(-22, $adapter->increment('key'));
+
+		// non-existing keys should not be created
+		$this->assertFalse($adapter->increment('foo'));
+		$this->assertFalse($adapter->exists('foo'));
+	}
 }
