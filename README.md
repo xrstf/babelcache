@@ -6,6 +6,8 @@ support for the [PSR Cache Proposal](https://github.com/php-fig/fig-standards/pu
 
 **BabelCache 2.0 is still in development and not yet ready!**
 
+[![Build Status][travisimg]][travis]
+
 Supported caching backends are:
 
 * [APC](http://www.php.net/manual/en/book.apc.php)
@@ -159,3 +161,6 @@ License
 -------
 
 BabelCache is licensed under the MIT License - see the LICENSE file for details.
+
+[travis]: https://secure.travis-ci.org/webvariants/babelcache
+[travisimg]: https://secure.travis-ci.org/webvariants/babelcache.png
