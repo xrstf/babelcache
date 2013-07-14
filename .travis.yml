@@ -13,7 +13,6 @@ before_script:
    - composer install
    - composer require predis/predis=~0.8
    - phpenv config-add tests/travis/php_extensions.ini
-   - mysql -e 'CREATE DATABASE test CHARACTER SET utf8 COLLATE utf8_general_ci'
 
 install: composer update
 script: phpunit --coverage-text
