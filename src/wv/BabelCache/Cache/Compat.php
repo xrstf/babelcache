@@ -12,6 +12,7 @@ namespace wv\BabelCache\Cache;
 
 use wv\BabelCache\CacheInterface;
 use wv\BabelCache\Factory;
+use wv\BabelCache\Util;
 
 /**
  * Compatibility layer
