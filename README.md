@@ -17,6 +17,7 @@ Supported caching backends are:
 * Memory (runtime caching only)
 * [Redis](http://redis.io/) (requires the pure PHP ``predis/prdis`` library)
 * [SQLite](http://www.sqlite.org/)
+* [WinCache](http://www.iis.net/downloads/microsoft/wincache-extension)
 * [XCache](http://xcache.lighttpd.net/)
 * [ZendServer](http://files.zend.com/help/Zend-Platform/zend_cache_api.htm)
 
