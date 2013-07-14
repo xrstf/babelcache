@@ -52,6 +52,7 @@ abstract class Factory {
 			'mysql'         => $prefix.'MySQL',
 			'redis'         => $prefix.'Redis',
 			'sqlite'        => $prefix.'SQLite',
+			'wincache'      => $prefix.'WinCache',
 			'xcache'        => $prefix.'XCache',
 			'zendserver'    => $prefix.'ZendServer'
 		);
