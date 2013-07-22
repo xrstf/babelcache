@@ -12,6 +12,7 @@ namespace wv\BabelCache;
 
 use wv\BabelCache\Cache;
 use wv\BabelCache\Psr;
+use PDO;
 
 /**
  * Factory
@@ -308,17 +309,23 @@ abstract class Factory {
 	protected function constructSQLite($className) {
 		$conn     = $this->getSQLiteConnection();
 		$table    = $this->getSQLiteTableName();
-		$instance = new $className($conn, $table);
 
-		return $instance;
+		if (!($conn instanceof PDO)) {
+			throw new Exception('Could not create PDO connection to MySQL.');
+		}
+
+		return new $className($conn, $table);
 	}
 
 	protected function constructMySQL($className) {
-		$conn     = $this->getMySQLConnection();
-		$table    = $this->getMySQLTableName();
-		$instance = new $className($conn, $table);
+		$conn  = $this->getMySQLConnection();
+		$table = $this->getMySQLTableName();
 
-		return $instance;
+		if (!($conn instanceof PDO)) {
+			throw new Exception('Could not create PDO connection to SQLite.');
+		}
+
+		return new $className($conn, $table);
 	}
 
 	protected function constructRedis($className) {
