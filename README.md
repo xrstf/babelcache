@@ -4,8 +4,6 @@ BabelCache is a feature-complete caching library for PHP 5.3+. It supports a
 wide range of adapters, namespaced caching and provides an experimental
 support for the [PSR Cache Proposal](https://github.com/php-fig/fig-standards/pull/96).
 
-**BabelCache 2.0 is still in development and not yet ready!**
-
 [![Build Status][travisimg]][travis]
 
 Supported caching backends are:
@@ -156,6 +154,45 @@ decorators, if you need to.
     // bring back the old BabelCache 1.x interface
     $cache = new wv\BabelCache\Decorator\Compat($cache);
     $cache->flush('name', true); // it's clear() now
+
+### Jailing
+
+Often you will want to have a simple key-value cache for one of your
+components. If you, you *could* just give them a cache adapter and be
+done. Unfortunately, this will suck hard when it comes to clearing the
+cache (since "clear" in APC actually means "wipe the whole userland
+cache").
+
+To make sure you can use multiple cache adapters to the same storage and
+still have namespaced cache clearing, you can use the Jailed adapter.
+This adapter simply jails a regular, full-blown cache to a fixed
+namespace and will only ever clear that one.
+
+    ::::php
+
+    <?php
+
+    $factory = new MyFactory();
+    $adapter = $factory->getAdapter('apc');
+
+    // The following will work just fine, if you can live with service A
+    // wiping the cache from service B:
+
+    $imaginaryServiceA = new MyFooService($adapter);
+    $imaginaryServiceB = new MyBarService($adapter);
+
+    // to jail them, you can wrap a cache like this:
+    // (The third argument controls whether clearing will be recursive or not)
+
+    $cache    = $factory->getCache('apc');
+    $adapterA = new wv\BabelCache\Adapter\Jailed($cache, 'service.foo', true);
+    $adapterB = new wv\BabelCache\Adapter\Jailed($cache, 'service.bar', true);
+
+    $imaginaryServiceA = new MyFooService($adapterA);
+    $imaginaryServiceB = new MyBarService($adapterB);
+
+    // Now imaginaryServiceA can clear its cache until it's blue in the face
+    // without affecting the other service's cache.
 
 License
 -------
