@@ -1,5 +1,5 @@
 CREATE TABLE babelcache (
 	keyhash VARCHAR(50),
-	payload BLOB,
+	payload MEDIUMBLOB,
 	PRIMARY KEY (keyhash)
 ) ENGINE = MyISAM;
