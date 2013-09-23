@@ -24,7 +24,10 @@
         }
     ],
     "require": {
-        "php": ">=5.3.3"
+        "php": ">=5.3.0"
+    },
+    "require-dev": {
+        "apigen/apigen": "~2.8"
     },
     "suggest": {
         "predis/predis": "install this to use the Redis adapter"
