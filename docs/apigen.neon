@@ -1,2 +1,4 @@
 source: ../src
 destination: _build/html/api
+title: BabelCache
+main: wv\BabelCache
