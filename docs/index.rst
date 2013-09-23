@@ -4,96 +4,165 @@ BabelCache
 .. toctree::
   :hidden:
 
-  example
   versioning
+  psr
+  decorators
+  jailing
   faq
 
-BabelCache is a PHP library that offers a simple wrapper for a number of
-different caching systems, including:
+BabelCache is a feature-complete caching library for PHP 5.3+. It supports a
+wide range of adapters, namespaced caching and provides an experimental
+support for the `PSR Cache Proposal`_.
+
+You can store arbitrary elements (with the exception of resources and Closures).
+BabelCache will always respect their types, so that when you store an int, you
+will get an int back.
+
+Supported caching backends are:
 
 * `APC`_
-* `eAccelerator`_
-* `Memcached`_ (both `php_memcache`_ and `php_memcached`_)
-* `XCache`_
-* `Zend Server`_
+* Blackhole (useful for transparently disabling caching)
+* Filesystem
+* `Memcached`_ (`php_memcache`_, `php_memcached`_ and a PHP-only implementation
+  for memcached with authentification via SASL)
+* `MariaDB & MySQL`_
+* Memory (runtime caching only)
+* `Redis`_ (requires the pure PHP ``predis/prdis`` library)
 * `SQLite`_
-* File system (should only be used when no shared memory cache is available)
+* `WinCache`_
+* `XCache`_
+* `ZendServer`_
 
-  * plain storage (datafiles reside directly inside the namespace directories)
-  * split storage (datafiles are distributed across many small subdirs)
+An automatically `generated documentation <api/index.html>`_ for the PHP code
+is available.
 
-.. _APC:           http://pecl.php.net/package/APC
-.. _XCache:        http://xcache.lighttpd.net/
-.. _eAccelerator:  http://eaccelerator.net/
-.. _Zend Server:   http://www.zend.com/en/products/server/
-.. _Memcached:     http://memcached.org/
-.. _php_memcache:  http://php.net/manual/en/book.memcache.php
-.. _php_memcached: http://php.net/manual/en/book.memcached.php
-.. _SQLite:        http://www.sqlite.org/
+.. _PSR Cache Proposal: https://github.com/php-fig/fig-standards/pull/96
+.. _APC:                http://www.php.net/manual/en/book.apc.php
+.. _MariaDB & MySQL:    https://mariadb.org/
+.. _Memcached:          http://memcached.org/
+.. _php_memcache:       http://php.net/manual/en/book.memcache.php
+.. _php_memcached:      http://php.net/manual/en/book.memcached.php
+.. _Redis:              http://redis.io/
+.. _SQLite:             http://www.sqlite.org/
+.. _WinCache:           http://www.iis.net/downloads/microsoft/wincache-extension
+.. _XCache:             http://xcache.lighttpd.net/
+.. _ZendServer:         http://files.zend.com/help/Zend-Platform/zend_cache_api.htm
 
-This enables you to build an application without knowing what caching system
-will be available on the target machine. You only use the generic interface and
-can rely on BabelCache to do the rest.
-
-Requirements
+Installation
 ------------
 
-BabelCache requires PHP >= 5.1. The classes can be loaded via any generic
-autoloader or by using the bundled :file:`Autoload.php`, which will register a
-simple SPL autoloader.
+Add the following requirements to your :file:`composer.json`:
 
-See the :doc:`faq` for some answers to common problems.
+.. sourcecode:: javascript
 
-Download
---------
+   {
+       "require": {
+           "webvariants/babelcache": "$VERSION"
+       }
+   }
 
-The current version can be downloaded from `Bitbucket`_. That's also where the
-development happens. Bitbucket automatically generates downloadable ZIP
-archives, so don't look for explicitely created downloads.
+Replace ``$VERSION`` with one of the available versions on `Packagist`_. Use
+``composer update`` to install BabelCache and the Composer autoloader to load
+it.
 
-The latest version is always the `tip revision`_.
+.. _Packagist: https://packagist.org/packages/webvariants/babelcache
 
-.. _Bitbucket:    https://bitbucket.org/webvariants/babelcache/
-.. _tip revision: https://bitbucket.org/webvariants/babelcache/get/tip.zip
+Usage
+-----
 
-Namespacing
------------
-
-One of the greatest features of BabelCache is its ability to use namespaces in
-systems that only offer plain key/value storage. For this to work, a
-:doc:`versioning concept <versioning>` is used, which works transparently in the
-background for you.
-
-As a result, it's always possible to flush part of your cache (in contrast to
-removing everything). A simple demo will show the possibilities:
+In most cases, you will want to use the factory to create the caching adapter
+for you. You can either use the prepared ``wv\BabelCache\SimpleFactory`` or, if
+you need more control, extend the ``wv\BabelCache\Factory``.
 
 .. sourcecode:: php
 
-  <?php
+   <?php
 
-  $factory = new MyCacheFactory();
-  $cache   = $factory->getCache('BabelCache_XCache');
+   $factory = new wv\BabelCache\SimpleFactory();
+   $adapter = $factory->getAdapter('apc');
 
-  // set some values
+   $adapter->set('world', 'dominated');
 
-  $cache->set('namespace',           'key',  'value');
-  $cache->set('namespace.sub',       'key2', true);
-  $cache->set('namespace.sub',       'key3', 3.14);
-  $cache->set('namespace.sub.subby', 'key',  null);
+Of course you can also instantiate all classes on your own, if you need to.
 
-  // clear part of the cache
+See the :doc:`faq` for some answers to common problems.
 
-  $cache->flush('namespace.sub');
+Overview
+--------
 
-  // use the upper namespaces
+BabelCache is divided into two main parts, adapters and caches. Additionally, it
+provides a number of other convenience stuff like decorators.
 
-  $cache->get('namespace', 'key');              // 'value'
-  $cache->exists('namespace.sub.subby', 'key'); // false
+Adapters
+""""""""
 
-See the :doc:`example file <example>` for a more complete demonstration.
+Adapters are the basic building block of BabelCache. There is one adapter per
+technology (APC, Memcached, Redis, ...) and each of them just implements a
+very basic **key-value interface** (``set``, ``get``, ``delete``, ``exists``,
+``clear``).
 
-API documentation
------------------
+You are free to use the adapters and hence a flat key-value storage, if that
+suits your needs. For example:
 
-Some automatically `generated documentation <coco/index.html>`_ for the PHP code
-is available.
+.. sourcecode:: php
+
+   <?php
+
+   $factory = new wv\BabelCache\SimpleFactory();
+   $adapter = $factory->getAdapter('apc');
+
+   $adapter->set('key', 'value');
+
+   print $adapter->get('key'); // prints 'value'
+
+
+Caches
+""""""
+
+A cache implements the advanced **namespace interface**, where elements are
+grouped by namespaces and key. This allows for partial flushes. See the
+:doc:`full description <versioning>` for the advantages and drawbacks to this.
+
+There is the ``Generic`` implementation, which uses a key-value adapter to build
+a namespaced system on top of it. This adds some overhead, as namespaces are
+versioned and the cache has to perform more roundtrips to the backend.
+For this reason, adapters which would support a structured storage by themselves,
+for example the filesystem or memory adapter, have a counterpart caching class.
+So the filesystem adapter has a specific filesystem cache implementation, making
+use of directories to manage the namespaces.
+
+In general, the factory takes automatically care of constructing the optimal
+implementation. However, you can force the factory to create a bad combination
+of generic caching and an adapter.
+
+Constructing caches is as easy as constructing adapters:
+
+.. sourcecode:: php
+
+   <?php
+
+   $factory = new wv\BabelCache\SimpleFactory();
+
+   // For the sake of this example, we want to create a filesystem cache. This
+   // requires a defined cache directory.
+   $factory->setCacheDirectory('/tmp/cache');
+
+   $adapter = $factory->getCache('apc');        // returns a Generic instance wrapping the APC adapter
+   $adapter = $factory->getCache('filesystem'); // returns a FilesystemCache instance
+
+   $adapter->set('my.awesome.namespace', 'key', 'value');
+
+   print $adapter->get('my.awesome.namespace', 'key'); // prints 'value'
+
+Advanced
+--------
+
+Besides the very basic caching classes, BabelCache contains more helpers to aid
+in integrating it into projects and make it even easier to use.
+
+* The :doc:`PSR Wrapper <psr>` allows you to easily use BabelCache as a drop-in
+  solution for a wide range of frameworks.
+* :doc:`Decorators <decorators>` transparently add features like expiries or
+  compression.
+* Via :doc:`Jailing <jailing>` you can create distinct caches and still provide
+  a simpley key-value interface.

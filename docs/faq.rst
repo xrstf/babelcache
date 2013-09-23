@@ -4,15 +4,13 @@ Frequently Asked Questions
 What cache should I chose?
 --------------------------
 
-In most cases, **XCache** is a really great choice. We've experienced very
-little problems with it (compared to APC, which has been proven to be somewhat
-unstable under Windows and has some pitfalls -- see below). Plus, it's fast and
-caches your opcodes.
+In most cases, **APC** (or, with PHP 5.5+, APCu) is a really great choice.
+We've experienced very little problems with it. Plus, it's fast and caches your
+opcodes.
 
 When using *Fast CGI*, be aware that the PHP processes **do not share the same
 cache** and that their caches are thrown away when the PHP process is killed.
-For those setups, **Memcached** is a good choice. It doesn't really matter what
-particular extension (php_memcache or php_memcached) you use.
+For those setups, **Memcached** or **MySQL** are good choices.
 
 XCache does not appear to work
 ------------------------------
@@ -44,10 +42,6 @@ will help you here).
 
 .. _Google: http://www.google.com/search?q=slam_defense
 
-As long as there is no definite answer to this problem, we strongly discourage
-the usage of APC (as a caching system) and recommend XCache (see first
-question).
-
 What's the memory cache useful for?
 -----------------------------------
 
@@ -60,17 +54,20 @@ wish to cache it permanently.
 We have yet to find a real usecase for it. So don't worry when it's useless to
 you -- that's normal. ;-)
 
-Should I use the plain or normal filesystem cache?
---------------------------------------------------
+Isn't using MySQL to cache data counter-productive?
+---------------------------------------------------
 
-We have found the normal filesystem cache to be overblown in nearly all cases.
-It creates sub-directories with the first two characters of the item hash, but
-for small systems this creates **a lot** of directories holding only one or two
-files.
+You're doing it wrong(tm). ;-) If you go ahead and cache your database queries,
+then yes, using MySQL would be pointless (as MySQL already caches query
+results). But in this case you should ask yourself, if you're caching the right
+things. Databases are fast, even MySQL.
 
-The plain filesystem cache, added in version 1.2.7, avoids this overhead and
-stores the datafiles directly inside the namspace directory. It's the better
-option for most websites, because really large pages will use memcached anyway.
+In general, try to cache *expensive* computations. Most of the everyday queries
+do not fall in that category. If your query only takes 50ms, don't waste your
+time trying to cache it.
 
-So try to avoid the normal cache and always use the plain one. It will suffice.
-If it's still to slow, you might want to take a look at the SQLite cache.
+On the other hand, MySQL can be a great choice when working in a distributed
+environment. Memcached has proven to add some network latency when it's not
+running on localhost, whereas MySQL connections work a lot faster. Additionally,
+MySQL caching can take advantage of native namespacing and hence requires a lot
+less roundtrips than Memcached.

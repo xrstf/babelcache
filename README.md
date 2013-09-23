@@ -6,6 +6,11 @@ support for the [PSR Cache Proposal](https://github.com/php-fig/fig-standards/pu
 
 [![Build Status][travisimg]][travis]
 
+[Documentation](http://docs.webvariants.de/babelcache/2.0/index.html) |
+[API](http://docs.webvariants.de/babelcache/2.0/api/index.html) |
+[Source Code](http://bitbucket.org/webvariants/babelcache/src) |
+[Bug Tracker](http://bitbucket.org/webvariants/babelcache/issues)
+
 Supported caching backends are:
 
 * [APC](http://www.php.net/manual/en/book.apc.php)
@@ -21,6 +26,10 @@ Supported caching backends are:
 * [XCache](http://xcache.lighttpd.net/)
 * [ZendServer](http://files.zend.com/help/Zend-Platform/zend_cache_api.htm)
 
+You can store arbitrary elements (with the exception of resources and Closures).
+BabelCache will always respect their types, so that when you store an int, you
+will get an int back.
+
 ## Installation
 
 Add the following requirements to your `composer.json`:
@@ -34,13 +43,23 @@ Add the following requirements to your `composer.json`:
 
 Replace `$VERSION` with one of the available versions on
 [Packagist](https://packagist.org/packages/webvariants/babelcache). Use
-``composer update`` to install BabelCache.
+``composer update`` to install BabelCache and the Composer autoloader to load
+it.
 
-In most cases, you will want to use ``wv\BabelCache\Factory`` to build new
-cache instances. In order to do so, you have to extend it and implement the
-provided abstract methods (which control stuff like the Memcached servers or
-the PDO connection). See the ``tests/lib/TestFactory.php`` for a minimal
-example.
+## Usage
+
+In most cases, you will want to use the factory to create the caching adapter
+for you. You can either use the prepared ``wv\BabelCache\SimpleFactory`` or, if
+you need more control, extend the ``wv\BabelCache\Factory``.
+
+    ::::php
+
+    <?php
+
+    $factory = new wv\BabelCache\SimpleFactory();
+    $adapter = $factory->getAdapter('apc');
+
+    $adapter->set('world', 'dominated');
 
 Of course you can also instantiate all classes on your own, if you need to.
 
@@ -72,7 +91,9 @@ suits your needs. For example:
 ### Caches
 
 A cache implements the advanced **namespace interface**, where elements are
-grouped by namespaces and key. This allows for partial flushes.
+grouped by namespaces and key. This allows for partial flushes. See the full
+[documentation](http://docs.webvariants.de/babelcache/2.0/index.html) for more
+information on this concept.
 
 There is the ``Generic`` implementation, which uses a key-value adapter to build
 a namespaced system on top of it. This adds some overhead, as namespaces are

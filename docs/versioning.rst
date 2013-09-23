@@ -3,20 +3,64 @@ Versioning
 
 .. note::
 
-  This does not apply to the filesystem and memory caches.
+  This does not apply to caches having native support for namespacing, like the
+  filesystem, memory or MySQL caches.
 
 Most in-memory caches only allow the user to store simple key/value pairs. For
 small applications that cache only a few values, this is acceptable. But when
 the system grows, it can become very expensive to clear the whole cache when
-an element has changed.
+one element has changed.
 
-BabelCache uses the idea outlined in the `Memcache Wiki`_:
+BabelCache uses the idea outlined in the `Memcache Wiki`_ to tackle this
+problem:
 
   Assign every namespace an internal version number and only increment this
   number when the user flushes the cache. This does **not** remove the data,
   makes it unavailable.
 
 .. _Memcache Wiki: http://code.google.com/p/memcached/wiki/FAQ#Deleting_by_Namespace
+
+Example
+-------
+
+An example should outline the effects and possibilities of this concept:
+
+.. sourcecode:: php
+
+  <?php
+
+  $factory = new wv\BabelCache\SimpleFactory();
+  $cache   = $factory->getCache('apc');         // note that APC does not support namespacing itself
+
+  // set three values
+  $cache->set('my.namespace', 'mykey',      42);
+  $cache->set('my.namespace', 'anotherkey', 23);
+  $cache->set('my',           'muh',        3.14);
+
+  // getting them back
+  $cache->get('my', 'muh'); // 3.14
+
+  // delete elements
+  $cache->delete('my', 'muh');
+
+  $cache->get('my', 'muh');              // null
+  $cache->get('my', 'muh', 'mydefault'); // 'mydefault'
+
+  // re-add
+  $cache->set('my', 'muh', 3.14);
+
+  // flush partially
+  $cache->flush('my.namespace'); // mykey and anotherkey become unavailable
+  $cache->get('my', 'muh');      // still 3.14
+
+  // re-add
+  $cache->set('my.namespace', 'mykey',      42);
+  $cache->set('my.namespace', 'anotherkey', 23);
+  $cache->set('my',           'muh',        3.14);
+
+  // flush partially
+  $cache->flush('my');
+  $cache->exists('my', 'muh'); // false
 
 Algorithm
 ---------
