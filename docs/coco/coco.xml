@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
-<coco keep="yes">
-	<title>BabelCache</title>
-	<briefdescription>API Documentation</briefdescription>
-	<basedir>../../</basedir>
-	<versionfile type="plain">../../version</versionfile>
-	<doxyfile keep="yes">doxyfile</doxyfile>
-</coco>
