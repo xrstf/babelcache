@@ -34,7 +34,10 @@ class SQLite extends PDO {
 	 * @return boolean           true if the cache can be used, else false
 	 */
 	public static function isAvailable(Factory $factory = null) {
-		return class_exists('PDO') && in_array('sqlite', \PDO::getAvailableDrivers());
+		return
+			class_exists('PDO') &&
+			in_array('sqlite', \PDO::getAvailableDrivers()) &&
+			(!$factory || $factory->getSQLiteTableName() !== null);
 	}
 
 	/**
