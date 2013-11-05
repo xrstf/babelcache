@@ -14,6 +14,7 @@ support for the [PSR Cache Proposal](https://github.com/php-fig/fig-standards/pu
 Supported caching backends are:
 
 * [APC](http://www.php.net/manual/en/book.apc.php)
+* [AWS ElastiCache](http://aws.amazon.com/elasticache/)
 * Blackhole (useful for transparently disabling caching)
 * Filesystem
 * [Memcached](http://memcached.org/) (``php_memcache``, ``php_memcached`` and a
