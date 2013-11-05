@@ -17,12 +17,13 @@ use wv\BabelCache\Cache\MySQL as MySQLCache;
 class TestFactory extends Factory {
 	protected $cacheDir;
 
-	public $sqliteConnection   = true;
-	public $sqliteTableName    = 'tmp_adapter';
-	public $mysqlConnection    = true;
-	public $mysqlTableName     = 'tmp_adapter';
-	public $redisAddresses     = array('host' => '127.0.0.1', 'port' => 6379);
-	public $memcachedAddresses = array(array('127.0.0.1', 11211, 1));
+	public $sqliteConnection    = true;
+	public $sqliteTableName     = 'tmp_adapter';
+	public $mysqlConnection     = true;
+	public $mysqlTableName      = 'tmp_adapter';
+	public $redisAddresses      = array('host' => '127.0.0.1', 'port' => 6379);
+	public $memcachedAddresses  = array(array('127.0.0.1', 11211, 1));
+	public $elastiCacheEndpoint = array('127.0.0.1', 11211);
 
 	public function __construct($cacheDir) {
 		parent::__construct();
@@ -100,5 +101,9 @@ class TestFactory extends Factory {
 
 	public function getRedisAddresses() {
 		return $this->redisAddresses;
+	}
+
+	public function getElastiCacheEndpoint() {
+		return $this->elastiCacheEndpoint;
 	}
 }

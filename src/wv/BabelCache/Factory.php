@@ -45,6 +45,7 @@ abstract class Factory {
 		$this->adapters = array(
 			'apc'           => $prefix.'APC',
 			'blackhole'     => $prefix.'Blackhole',
+			'elasticache'   => $prefix.'ElastiCache',
 			'filesystem'    => $prefix.'Filesystem',
 			'memcache'      => $prefix.'Memcache',
 			'memcached'     => $prefix.'Memcached',
@@ -232,6 +233,7 @@ abstract class Factory {
 	 */
 	protected function construct($name, $className) {
 		switch ($name) {
+			case 'elasticache':   $instance = $this->constructElastiCache($className);   break;
 			case 'memcache':      $instance = $this->constructMemcache($className);      break;
 			case 'memcached':     $instance = $this->constructMemcached($className);     break;
 			case 'memcachedsasl': $instance = $this->constructMemcachedSASL($className); break;
@@ -243,6 +245,18 @@ abstract class Factory {
 		}
 
 		return $instance;
+	}
+
+	protected function constructElastiCache($className) {
+		$endpoint = $this->getElastiCacheEndpoint();
+
+		if (empty($endpoint)) {
+			throw new Exception('No ElastiCache configuration endpoint has been returned from getElastiCacheEndpoint()!');
+		}
+
+		// @codeCoverageIgnoreStart
+		return new $className($endpoint[0], $endpoint[1], null);
+		// @codeCoverageIgnoreEnd
 	}
 
 	protected function constructMemcache($className) {
@@ -401,6 +415,17 @@ abstract class Factory {
 	 * @return array  [{host: ..., port: ...}] or null
 	 */
 	public function getRedisAddresses() {
+		return null;
+	}
+
+	/**
+	 * Return ElastiCache configuration endpoint
+	 *
+	 * This method should return a tupel of [hostname, port].
+	 *
+	 * @return array  array(host, port)
+	 */
+	public function getElastiCacheEndpoint() {
 		return null;
 	}
 

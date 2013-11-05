@@ -23,6 +23,7 @@ class SimpleFactory extends Factory {
 	protected $memcachedAddr;
 	protected $memcachedAuth;
 	protected $redisAddr;
+	protected $elastiCacheEndpoint;
 	protected $cachePrefix;
 	protected $cacheDir;
 	protected $sqliteConn;
@@ -55,6 +56,15 @@ class SimpleFactory extends Factory {
 	 */
 	public function setRedisAddresses(array $addresses = null) {
 		$this->redisAddr = $addresses;
+	}
+
+	/**
+	 * Set ElastiCache configuration endpoint
+	 *
+	 * @param array $endpoint  [host, port]
+	 */
+	public function setElastiCacheEndpoint(array $endpoint = null) {
+		$this->elastiCacheEndpoint = $endpoint;
 	}
 
 	/**
@@ -122,6 +132,17 @@ class SimpleFactory extends Factory {
 	 */
 	public function getRedisAddresses() {
 		return $this->redisAddr;
+	}
+
+	/**
+	 * Return ElastiCache configuration endpoint
+	 *
+	 * This method should return a tupel of [hostname, port].
+	 *
+	 * @return array  array(host, port)
+	 */
+	public function getElastiCacheEndpoint() {
+		return $this->elastiCacheEndpoint;
 	}
 
 	/**
