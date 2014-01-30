@@ -120,6 +120,10 @@ class Memory implements CacheInterface {
 			return $array;
 		}
 
+		if (!isset($array[$this->prefix])) {
+			return $array;
+		}
+
 		$pattern    = "$namespace.*";
 		$namespaces = array_keys($array[$this->prefix]);
 
