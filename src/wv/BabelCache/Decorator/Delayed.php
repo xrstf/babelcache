@@ -55,7 +55,7 @@ class Delayed extends Base implements CacheInterface {
 	 * @return mixed              the set value
 	 */
 	public function set($namespace, $key, $value, $ttl = null) {
-		return $this->wait()->cache->set($namespace, $key, $data);
+		return $this->wait()->cache->set($namespace, $key, $value, $ttl);
 	}
 
 	/**
