@@ -66,7 +66,7 @@ class Jailed implements AdapterInterface, LockingInterface {
 	 * @return mixed           the found value or null
 	 */
 	public function get($key, &$found = null) {
-		return $this->cache->get($this->namespace, $key, $found);
+		return $this->cache->get($this->namespace, $key, null, $found);
 	}
 
 	/**
