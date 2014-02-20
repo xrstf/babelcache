@@ -77,10 +77,11 @@ class Jailed implements AdapterInterface, LockingInterface {
 	 *
 	 * @param  string $key    the object key
 	 * @param  mixed  $value  the value to store
+	 * @param  mixed  $ttl    timeout in seconds
 	 * @return boolean        true on success, else false
 	 */
-	public function set($key, $value, $expiration = null) {
-		return $this->cache->set($this->namespace, $key, $value, $expiration);
+	public function set($key, $value, $ttl = null) {
+		return $this->cache->set($this->namespace, $key, $value, $ttl);
 	}
 
 	/**
